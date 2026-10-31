@@ -1,6 +1,7 @@
 ---
 name: discovery-workshop
 description: "Resolve uncertainty about whose problem matters and whether it is worth solving. Use when problem framing or customer needs are disputed; design interviews and implementation planning address later questions."
+disable-model-invocation: true
 ---
 
 # Discovery workshop

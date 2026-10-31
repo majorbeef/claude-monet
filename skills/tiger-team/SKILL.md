@@ -1,6 +1,7 @@
 ---
 name: tiger-team
 description: "Deliver one bounded outcome across ownership boundaries. Use when cross-team handoffs are failing or urgent joint delivery needs an integration owner; ordinary independent tickets need no tiger team."
+disable-model-invocation: true
 ---
 
 # Tiger team

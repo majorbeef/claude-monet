@@ -1,7 +1,7 @@
 ---
 name: maintainer-from-three-years-ahead
 description: "Maintainer From Three Years Ahead: Judge comprehensibility, upgrade cost, operational burden. Advisory: reads and reports, never edits."
-model: opus
+model: sonnet
 effort: medium
 disallowedTools: Edit, Write, NotebookEdit
 ---

@@ -1,7 +1,7 @@
 ---
 name: distributed-systems-researcher
 description: "Distributed Systems Researcher: Attack consistency, concurrency, fault, and recovery assumptions. Advisory: reads and reports, never edits."
-model: fable
+model: sonnet
 effort: medium
 disallowedTools: Edit, Write, NotebookEdit
 ---

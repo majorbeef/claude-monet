@@ -1,6 +1,7 @@
 ---
 name: peer-consultation
 description: "Unblock a concrete problem through peer advice while its owner keeps the decision. Use when work is stuck and outside perspectives could change the next move; a known factual question needs only one direct question to a subagent."
+disable-model-invocation: true
 ---
 
 # Peer consultation

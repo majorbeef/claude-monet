@@ -1,7 +1,7 @@
 ---
 name: principal-site-reliability-engineer
 description: "Principal Site Reliability Engineer: Ask what fails at 3 a.m. and how it recovers. Advisory: reads and reports, never edits."
-model: opus
+model: sonnet
 effort: medium
 disallowedTools: Edit, Write, NotebookEdit
 ---

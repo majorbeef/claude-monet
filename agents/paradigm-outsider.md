@@ -1,7 +1,7 @@
 ---
 name: paradigm-outsider
 description: "Paradigm Outsider: Solve it without the current stack or conventions. Advisory: reads and reports, never edits."
-model: fable
+model: sonnet
 effort: medium
 disallowedTools: Edit, Write, NotebookEdit
 ---

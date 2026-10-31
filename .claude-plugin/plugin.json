@@ -2,7 +2,7 @@
   "name": "monet",
   "displayName": "Monet",
   "version": "0.1.0",
-  "description": "A Claude Code adaptation of apple-pi: engineering and team-process skills, 35 role subagents, a session notebook that survives compaction, a .ledger task workbench, Ralph loops, and optional RTK output compression.",
+  "description": "Engineering and team-process skills, 35 role subagents, a session notebook that survives compaction, a .ledger task workbench, Ralph loops, and optional RTK output compression.",
   "author": { "name": "crweidert" },
   "license": "MIT",
   "keywords": ["skills", "subagents", "ledger", "learnings", "ralph", "rtk"],
@@ -16,8 +16,8 @@
     "reflect_every_tokens": {
       "type": "number",
       "title": "Tokens between learning reflections",
-      "description": "After this many new tokens, Claude is asked once to record what it learned in the session notebook. 0 turns it off.",
-      "default": 500000,
+      "description": "After this many new tokens, Claude is asked once to record what it learned in the session notebook. 0 (the default) turns it off; 500000 is a reasonable value.",
+      "default": 0,
       "min": 0
     }
   }

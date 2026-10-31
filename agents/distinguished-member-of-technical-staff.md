@@ -1,7 +1,7 @@
 ---
 name: distinguished-member-of-technical-staff
 description: "Distinguished Member of Technical Staff: Widen the solution space before the org commits. Advisory: reads and reports, never edits."
-model: fable
+model: sonnet
 effort: medium
 disallowedTools: Edit, Write, NotebookEdit
 ---

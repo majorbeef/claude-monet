@@ -1,6 +1,7 @@
 ---
 name: onboarding
 description: "Help a person become effective in an unfamiliar area or responsibility through current sources and representative use. Use for gaining working context; handoff handles an actual transfer of ownership."
+disable-model-invocation: true
 ---
 
 # Onboarding

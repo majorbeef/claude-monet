@@ -1,6 +1,7 @@
 ---
 name: failure-exercise
 description: "Observe how a system and its response process behave under an authorized controlled fault. Use to test recovery and coordination before a real incident; imagined failure scenarios belong in pre-mortem."
+disable-model-invocation: true
 ---
 
 # Failure exercise

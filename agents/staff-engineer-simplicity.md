@@ -1,7 +1,7 @@
 ---
 name: staff-engineer-simplicity
 description: "Staff Engineer, Simplicity: Remove accidental complexity without losing correctness. Advisory: reads and reports, never edits."
-model: opus
+model: sonnet
 effort: medium
 disallowedTools: Edit, Write, NotebookEdit
 ---

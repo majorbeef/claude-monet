@@ -1,7 +1,7 @@
 ---
 name: infrastructure-cfo
 description: "Infrastructure CFO: Price decisions in spend, hours, lock-in, maintenance. Advisory: reads and reports, never edits."
-model: opus
+model: sonnet
 effort: medium
 disallowedTools: Edit, Write, NotebookEdit
 ---

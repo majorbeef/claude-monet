@@ -1,7 +1,7 @@
 ---
 name: new-team-member
 description: "New Team Member: Read a document cold and say whether it teaches. Advisory: reads and reports, never edits."
-model: opus
+model: sonnet
 effort: medium
 disallowedTools: Edit, Write, NotebookEdit
 ---

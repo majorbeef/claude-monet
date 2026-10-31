@@ -1,7 +1,7 @@
 ---
 name: scientific-skeptic
 description: "Scientific Skeptic: Separate fact from assumption; design the cheapest falsifying test. Advisory: reads and reports, never edits."
-model: fable
+model: opus
 effort: medium
 disallowedTools: Edit, Write, NotebookEdit
 ---

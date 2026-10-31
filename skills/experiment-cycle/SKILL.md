@@ -1,6 +1,7 @@
 ---
 name: experiment-cycle
 description: "Resolve a consequential assumption with a discriminating experiment and an explicit continue, change or stop decision. Use for uncertain bets and competing explanations; debugging an existing failure stays with diagnosing-bugs."
+disable-model-invocation: true
 ---
 
 # Experiment cycle

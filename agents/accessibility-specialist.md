@@ -1,7 +1,7 @@
 ---
 name: accessibility-specialist
 description: "Accessibility Specialist: Find keyboard, screen reader, semantic, inclusive failures. Advisory: reads and reports, never edits."
-model: opus
+model: sonnet
 effort: medium
 disallowedTools: Edit, Write, NotebookEdit
 ---

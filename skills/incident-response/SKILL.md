@@ -1,6 +1,7 @@
 ---
 name: incident-response
 description: "Coordinate recovery from active harm or service disruption. Use when response needs shared priorities, controlled changes, stakeholder updates or command handoff; diagnosing a bug alone is a separate method."
+disable-model-invocation: true
 ---
 
 # Incident response

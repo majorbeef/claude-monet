@@ -102,7 +102,7 @@ If you cannot state the prediction, the hypothesis is a vibe: discard or sharpen
 
 When your first hypotheses fall without finding the cause, or the operator asks, convene a hypothesis board. You chair it. Staff the whole board with role subagents, as [handbook-writing](../handbook-writing/SKILL.md) describes, and brief everyone at once, telling every member who else sits on it:
 
-- 2–3 investigators (default `code-review-specialist`; for a performance regression, `performance-engineering-lead`). Each gets the red loop, the minimised repro, and the hypotheses already ruled out with their evidence, but not your current favourite.
+- 1 investigator, or 2 when the operator asks or the hypotheses split into independent areas (default `code-review-specialist`; for a performance regression, `performance-engineering-lead`). Each gets the red loop, the minimised repro, and the hypotheses already ruled out with their evidence, but not your current favourite.
 - A `scientific-skeptic`, who checks before the probes start that the loop asserts the user's exact symptom, down to the input bytes and a control that should pass, and challenges each claimed cause and the scope of the fix.
 
 Each investigator writes ranked, falsifiable hypotheses alone, returns them to you, then probes its own top hypothesis against the shared loop, changing one variable at a time. Post the hypotheses and probe results in one shared thread the board reads. A cause is confirmed when the narrowest probe flips the loop red, green, and red again as its prediction said, and the skeptic's challenge is answered. Then continue with Phase 5 yourself. Close with a short exchange on what made the diagnosis harder or easier, recorded in the task's `retrospective.md`.

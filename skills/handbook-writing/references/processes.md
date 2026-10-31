@@ -18,7 +18,7 @@ Each subagent's report is lossy: it holds only what the subagent chose to say an
 
 Name who is accountable for the result and who may make the decision. A chair coordinates the exchange; the operator keeps every decision outside the current authority. Ask the operator at a real authority boundary rather than requiring a vote on every within-scope judgment.
 
-Choose the perspectives the case needs, not a fixed board or every role in the catalog. A participant is advisory unless the brief explicitly gives it a bounded change to make; only roles that may write (such as `implementation-engineer`, `technical-writer`, `release-engineering-lead`) get edit work.
+Choose the perspectives the case needs, not a fixed board or every role in the catalog. Every subagent costs a full model run, so start with the smallest useful board: one participant, plus a `scientific-skeptic` only when the result needs challenge. Add a perspective only when the case's risk names it or the operator asks, and say why in one line when you do. A participant is advisory unless the brief explicitly gives it a bounded change to make; only roles that may write (such as `implementation-engineer`, `technical-writer`, `release-engineering-lead`) get edit work.
 
 ## Give the exchange one useful home
 

@@ -1,6 +1,7 @@
 ---
 name: decision-review
 description: "Reach an accountable choice between meaningful alternatives. Use for consequential disagreement, conflicting needs, or a costly-to-reverse commitment; use code-review for an existing change's correctness."
+disable-model-invocation: true
 ---
 
 # Decision review

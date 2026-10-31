@@ -2,8 +2,8 @@
 
 Reads the transcript incrementally, adds up new tokens (input + cache writes +
 output of each assistant message), and collects failed tool calls as evidence.
-When the total passes the spacing (default 500,000 tokens; MONET_REFLECT_EVERY_TOKENS
-or the plugin's `reflect_every_tokens` option; 0 turns it off), it blocks the
+When the total passes the spacing (MONET_REFLECT_EVERY_TOKENS or the plugin's
+`reflect_every_tokens` option; off by default), it blocks the
 stop once with a reflection prompt, so Claude records learnings in the notebook.
 """
 import json
@@ -13,7 +13,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "lib"))
 import monet  # noqa: E402
 
-DEFAULT_SPACING = 500_000
+DEFAULT_SPACING = 0  # off unless the user sets a spacing
 MAX_EVIDENCE = 20
 
 QUESTIONS = (

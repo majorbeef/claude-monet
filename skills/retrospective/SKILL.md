@@ -1,6 +1,7 @@
 ---
 name: retrospective
 description: "Turn a significant effort, incident or recurring surprise into evidence-backed learning and owned improvements. Use when deeper reflection is warranted; ordinary multi-person closeouts can remain brief."
+disable-model-invocation: true
 ---
 
 # Retrospective

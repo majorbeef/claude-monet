@@ -1,6 +1,7 @@
 ---
 name: operating-review
 description: "Investigate an organizational constraint and choose an evidence-led response or no change. Use for stalled delivery, competing commitments, slow decisions or a requested operating review; activity counts are not productivity scores."
+disable-model-invocation: true
 ---
 
 # Operating review

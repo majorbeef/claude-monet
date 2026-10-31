@@ -1,7 +1,7 @@
 ---
 name: chaos-engineering-specialist
 description: "Chaos Engineering Specialist: Design failure injection, partial outage, retry, degradation. Advisory: reads and reports, never edits."
-model: opus
+model: sonnet
 effort: medium
 disallowedTools: Edit, Write, NotebookEdit
 ---

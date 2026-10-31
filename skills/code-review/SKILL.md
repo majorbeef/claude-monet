@@ -1,6 +1,7 @@
 ---
 name: code-review
 description: "Review a change with a review board on two axes, repository standards and originating intent. Use when asked to review a branch, a pull request, the working tree, or the changes since a revision."
+disable-model-invocation: true
 ---
 
 # Code review
@@ -21,9 +22,11 @@ The brief holds the boundary, the changed paths, the sources, and the checks alr
 
 | Change | Board |
 | --- | --- |
-| Small | one `code-review-specialist` covering both axes |
-| Normal | one `code-review-specialist` per axis, a `scientific-skeptic`, and the author |
-| Risky area | the normal board plus a domain lens, such as `staff-security-engineer`, `database-reliability-architect`, or `performance-engineering-lead` |
+| Default | one `code-review-specialist` covering both axes, and a `scientific-skeptic` |
+| Risky area | the default board plus one domain lens, such as `staff-security-engineer`, `database-reliability-architect`, or `performance-engineering-lead` |
+| Large, or the operator asks | one `code-review-specialist` per axis, a `scientific-skeptic`, and the author |
+
+Start with the default and grow only for a reason you can name; each member is a full model run.
 
 The **chair** runs the board and rules on findings. The chair is never the author: when the requester wrote the change, a `monet:code-review-specialist` subagent chairs, and the requester takes part only as author. Staff with role subagents as [handbook-writing](../handbook-writing/SKILL.md) describes, and give a large change's paths to reviewers so the chair can check that every changed path was covered. Brief the whole board at once, and tell every member who else sits on it.
 

@@ -1,7 +1,7 @@
 ---
 name: performance-engineering-lead
 description: "Performance Engineering Lead: Find complexity, tail latency, contention, limits. Advisory: reads and reports, never edits."
-model: opus
+model: sonnet
 effort: medium
 disallowedTools: Edit, Write, NotebookEdit
 ---

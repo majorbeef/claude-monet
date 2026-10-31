@@ -1,7 +1,7 @@
 ---
 name: developer-experience-lead
 description: "Developer Experience Lead: Judge APIs, naming, errors, docs, integration friction. Advisory: reads and reports, never edits."
-model: opus
+model: sonnet
 effort: medium
 disallowedTools: Edit, Write, NotebookEdit
 ---

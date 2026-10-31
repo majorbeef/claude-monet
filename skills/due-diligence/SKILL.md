@@ -1,6 +1,7 @@
 ---
 name: due-diligence
 description: "Establish the liabilities and exit options of a proposed dependency, vendor, protocol or data commitment. Use before inheriting consequential obligations; decision-review makes the choice from this evidence."
+disable-model-invocation: true
 ---
 
 # Due diligence

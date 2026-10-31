@@ -1,8 +1,6 @@
 # claude-monet
 
-`monet` is a Claude Code plugin adapted from [apple-pi](https://github.com/z3z1ma/apple-pi), a personal coding harness built on `pi`. It keeps the apple-pi parts that fit Claude Code: the engineering and team-process skills, the role catalog as subagents, a session notebook whose learnings survive compaction, the `.ledger/` task workbench, fresh-context Ralph loops, and optional RTK output compression.
-
-It is a selective remake, not a port. Parts that Claude Code already covers, or that depend on Pi's runtime, were left out ([see below](#what-was-left-out)).
+`monet` is a Claude Code plugin: engineering and team-process skills, a catalog of role subagents, a session notebook whose learnings survive compaction, a `.ledger/` task workbench, fresh-context Ralph loops, a browser review page for Markdown documents, and optional RTK output compression.
 
 ## Install
 
@@ -26,20 +24,22 @@ Requirements: `python3` (3.9+, standard library only) and `git`. RTK rewriting a
 | Team processes | `peer-consultation`, `decision-review`, `tiger-team`, `handoff`, `incident-response`, `operating-review`, `retrospective`, `pre-mortem`, `prioritization`, `release-readiness`, `discovery-workshop`, `onboarding`, `failure-exercise`, `due-diligence`, `experiment-cycle` |
 | Notebook | `reflect`, `distill`, `promote` |
 
-Claude picks most skills on its own when they fit. These run only when you type them: `interrogate`, `interrogate-to-design`, `to-spec`, `to-tickets`, `wayfinder`, `implement`, `improve-codebase-architecture`, `ralph`, `reflect`, `distill`, `promote`.
+To keep token use down, every skill that starts several subagents runs only when you type it: `code-review` and all the team-process skills, plus `interrogate`, `interrogate-to-design`, `to-spec`, `to-tickets`, `wayfinder`, `implement`, `improve-codebase-architecture`, `ralph`, `reflect`, `distill`, and `promote`. Claude picks the rest (such as `tdd`, `diagnosing-bugs`, `research`, `domain-modeling`, `review-document`) on its own when they fit.
 
-The team-process skills ran on Pi's mail and org runtime in apple-pi. Here the session running the skill chairs, and the participants are role subagents: independent first positions run in parallel, and the chair relays positions between them when they must answer each other. The mapping lives in [`skills/handbook-writing/references/processes.md`](skills/handbook-writing/references/processes.md).
+Boards start small: one reviewer plus a `scientific-skeptic`, growing only when the risk calls for it or you ask.
+
+In the team-process skills, the session running the skill chairs, and the participants are role subagents: independent first positions run in parallel, and the chair relays positions between them when they must answer each other. The mapping lives in [`skills/handbook-writing/references/processes.md`](skills/handbook-writing/references/processes.md).
 
 ### Role subagents (`monet:<role>`)
 
-35 roles from apple-pi's catalog, such as `architecture-prosecutor`, `scientific-skeptic`, `staff-security-engineer`, `implementation-engineer`, and `new-team-member`. Each role keeps the model and effort apple-pi recommended for Claude. Advisory roles cannot edit files. `coordinator` was dropped because it only worked inside Pi's org runtime.
+35 roles, such as `architecture-prosecutor`, `scientific-skeptic`, `staff-security-engineer`, `implementation-engineer`, and `new-team-member`. Most run on Sonnet at medium effort. Four deep-judgment roles stay on Opus (`chief-architect`, `architecture-prosecutor`, `staff-security-engineer`, `scientific-skeptic`), and three routine ones on Haiku. Change a role's `model` and `effort` lines in `agents/` to rebalance. Advisory roles cannot edit files.
 
 ### Session notebook
 
 Claude records hard-won learnings as it works: a falsified hypothesis, a pitfall, or a correction you made. It records them with `monet-notebook add "..."`.
 
 - After every compaction, the open learnings are put back into context, so they survive when the transcript is summarized.
-- After about 500k new tokens, a Stop hook asks Claude once to reflect and record what it learned. It includes the tool calls that failed since the last reflection.
+- Optional (off by default): after a set number of new tokens, a Stop hook asks Claude once to reflect and record what it learned, listing the tool calls that failed since the last reflection. `/monet:reflect` does the same on demand.
 - `/monet:distill` moves durable learnings into `.claude/LEARNINGS.md` (loaded at every session start) or a ledger task's `retrospective.md`, and retires the rest.
 - `/monet:promote` proposes moving proven learnings into files you own, such as `CLAUDE.md`, skills, and docs. It waits for your approval before changing anything.
 
@@ -82,19 +82,8 @@ Set these in `/config` (plugin options), or override them with environment varia
 | Option | Env override | Default | |
 | --- | --- | --- | --- |
 | `rtk` | `MONET_RTK=1` (or `RTK_ENABLED=1`) | off | RTK rewriting |
-| `reflect_every_tokens` | `MONET_REFLECT_EVERY_TOKENS` | 500000 | Tokens between reflections; `0` turns them off |
+| `reflect_every_tokens` | `MONET_REFLECT_EVERY_TOKENS` | 0 (off) | Tokens between automatic reflections (500000 is a reasonable value) |
 | | `MONET_NOTEBOOK_DIR` | `~/.claude/monet/notebooks` | Where notebooks are stored |
-
-## What was left out
-
-| apple-pi | In Claude Code |
-| --- | --- |
-| `interns` (explore/research), `tasks`, `ask-user-question`, `notify`, `/btw` | Built-in subagents, background tasks, `AskUserQuestion`, notification hooks, `/btw` |
-| `session-search` | Not ported; `monet-notebook show` covers notebook provenance |
-| `pi-exec`, saved programs, `branch-search`, `pair-programmer`, `organization`/`session-state` | Not ported (Pi runtime); team processes use subagents instead |
-| `browser-pages` (`sign_off_*`, `explain_change`) | `sign_off_document` → `monet-review` (no "ask the agent" from the page); code and ledger sign-offs write a review file and ask with `AskUserQuestion`; `explain-change` dropped |
-| `code-context`, `home-search-guard`, `change-reflection`, `wiki`/`llm-wiki` | Left out by choice; domain docs go in `docs/` |
-| `tmux-sessions`, `terse-tools`, `input-editor`, `prompt-stash`, Agent World, provider tweaks | Out of scope |
 
 ## Development
 
@@ -107,4 +96,4 @@ Layout: `skills/`, `agents/`, `hooks/` (`hooks.json` plus Python hooks), `bin/` 
 
 ## License
 
-MIT, as apple-pi. See [`LICENSE`](LICENSE) and [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md).
+MIT. See [`LICENSE`](LICENSE) and [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md).

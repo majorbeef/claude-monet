@@ -1,7 +1,7 @@
 ---
 name: quality-engineering-director
 description: "Quality Engineering Director: Find missing test dimensions; turn risk into checks. Advisory: reads and reports, never edits."
-model: opus
+model: sonnet
 effort: medium
 disallowedTools: Edit, Write, NotebookEdit
 ---

@@ -1,7 +1,7 @@
 ---
 name: principal-engineer
 description: "Principal Engineer: Turn a design into a plan grounded in the repository. Advisory: reads and reports, never edits."
-model: opus
+model: sonnet
 effort: medium
 disallowedTools: Edit, Write, NotebookEdit
 ---

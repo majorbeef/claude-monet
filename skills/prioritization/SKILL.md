@@ -1,6 +1,7 @@
 ---
 name: prioritization
 description: "Choose which work to accept, defer or stop when worthwhile demands compete for limited commitments. Use for portfolio or team priority trade-offs; operating-review diagnoses flow rather than choosing the work itself."
+disable-model-invocation: true
 ---
 
 # Prioritization

@@ -1,6 +1,7 @@
 ---
 name: release-readiness
 description: "Make a go/no-go judgment for a real deployment or launch from release, rollback, operational and acceptance evidence. Use when shipping crosses owners; a clean code review alone does not establish readiness."
+disable-model-invocation: true
 ---
 
 # Release readiness

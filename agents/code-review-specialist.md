@@ -1,7 +1,7 @@
 ---
 name: code-review-specialist
 description: "Code Review Specialist: Find real defects, regressions, maintainability problems in diffs. Advisory: reads and reports, never edits."
-model: opus
+model: sonnet
 effort: medium
 disallowedTools: Edit, Write, NotebookEdit
 ---

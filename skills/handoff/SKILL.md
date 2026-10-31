@@ -1,6 +1,7 @@
 ---
 name: handoff
 description: "Transfer usable work, operational responsibility or essential knowledge to a receiving owner. Use when ownership changes; sending a document or finishing a component alone is not an accepted handoff."
+disable-model-invocation: true
 ---
 
 # Handoff

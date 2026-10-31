@@ -1,6 +1,7 @@
 ---
 name: pre-mortem
 description: "Find plausible failure mechanisms before a consequential plan is committed. Use when assumptions, dependencies or irreversible steps deserve challenge; this imagines risks rather than observing an actual failure."
+disable-model-invocation: true
 ---
 
 # Pre-mortem
