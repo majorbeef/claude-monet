@@ -2,17 +2,18 @@
   "name": "monet",
   "displayName": "Monet",
   "version": "0.1.0",
-  "description": "Engineering and team-process skills, 35 role subagents, a session notebook that survives compaction, a .ledger task workbench, Ralph loops, and optional RTK output compression.",
-  "author": { "name": "crweidert" },
+  "description": "Engineering and team-decision skills, 18 role subagents, a session notebook that survives compaction, a .ledger task workbench, and a browser review page for Markdown documents.",
+  "author": {
+    "name": "crweidert"
+  },
   "license": "MIT",
-  "keywords": ["skills", "subagents", "ledger", "learnings", "ralph", "rtk"],
+  "keywords": [
+    "skills",
+    "subagents",
+    "ledger",
+    "learnings"
+  ],
   "userConfig": {
-    "rtk": {
-      "type": "boolean",
-      "title": "Rewrite Bash commands through RTK",
-      "description": "Route Bash commands through `rtk rewrite` to compress noisy output. Needs the rtk binary on PATH. Skip this if you already ran `rtk init -g`.",
-      "default": false
-    },
     "reflect_every_tokens": {
       "type": "number",
       "title": "Tokens between learning reflections",

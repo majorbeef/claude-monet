@@ -1,6 +1,6 @@
 {
   "name": "claude-monet",
-  "description": "Skills, role subagents, session notebook, ledger, Ralph loops, and document review for Claude Code",
+  "description": "Skills, role subagents, session notebook, ledger, and document review for Claude Code",
   "owner": {
     "name": "crweidert"
   },
@@ -8,7 +8,7 @@
     {
       "name": "monet",
       "source": "./",
-      "description": "Skills, role subagents, session notebook, ledger, Ralph loops, and document review"
+      "description": "Skills, role subagents, session notebook, ledger, and document review"
     }
   ]
 }

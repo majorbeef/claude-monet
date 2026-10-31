@@ -6,7 +6,7 @@ disable-model-invocation: true
 
 # Pre-mortem
 
-Make a plan harder to surprise. Read and follow the [shared process conventions](../handbook-writing/references/processes.md).
+Make a plan harder to surprise. Read and follow the [shared process conventions](../shared/processes.md).
 
 The plan owner chairs with people who would experience its failure. Choose risk perspectives such as `architecture-prosecutor`, `staff-security-engineer`, `maintainer-from-three-years-ahead` or the affected operational owner.
 
@@ -14,4 +14,4 @@ The plan owner chairs with people who would experience its failure. Choose risk 
 2. **Challenge the mechanisms.** Share cases in one thread. For each consequential risk, connect the failure to an actual assumption or dependency and identify an observable warning or discriminating check. Merge duplicate mechanisms without erasing different evidence.
 3. **Return choices to the owner.** The authorized owner chooses mitigations, checks, accepted risks or a change to the plan. Record who owns each accepted action and what would reopen the commitment. Missing authority or evidence stays visible.
 
-Done is a plan with explicit risk decisions and owned checks, not a longer list of frightening possibilities. Use [failure-exercise](../failure-exercise/SKILL.md) when the next useful result requires observing an authorized controlled fault.
+Done is a plan with explicit risk decisions and owned checks, not a longer list of frightening possibilities.

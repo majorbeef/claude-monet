@@ -8,14 +8,9 @@ monet is an adaptation of apple-pi for Claude Code. It carries apple-pi's skills
 - Imported commit: `4c70e80688b5ec3ca279bc523f743bdb72aa9963`
 - License: MIT (see `LICENSE`)
 - Original notice: `Copyright (c) 2026 apple-pi contributors`
-- Adapted paths: `skills/` (all but `distill`, `reflect`, `interrogate` and `promote` copied and modified; `interrogate` and `promote` from apple-pi's `prompts/`; `distill` and `reflect` from its notebook prompts), `agents/` (from `roles/`, without `coordinator`), `lib/monet.py` (ledger behavior ported from `components/shared/src/ledger-files.ts`; notebook and distillation prompts from `components/notebook/`), `hooks/reflect.py` (from `components/notebook/src/hooks/learning-cycle.ts`), `bin/monet-ralph` (from `skills/ralph/references/ralph-*.py`).
+- Adapted paths: `skills/` (all but `distill`, `reflect`, `interrogate` and `promote` copied and modified; `interrogate` and `promote` from apple-pi's `prompts/`; `distill` and `reflect` from its notebook prompts), `agents/` (from `roles/`, without `coordinator`), `lib/monet.py` (ledger behavior ported from `components/shared/src/ledger-files.ts`; notebook and distillation prompts from `components/notebook/`), `hooks/reflect.py` (from `components/notebook/src/hooks/learning-cycle.ts`).
 - Changes: Pi tools, the organization runtime (mail, channels, hiring), browser sign-off pages, `pi_exec`, and the wiki were replaced with Claude Code subagents, `AskUserQuestion`, plain files, and the `monet-*` commands.
 
-## rtk → RTK rewrite hook
-
-- Source: <https://github.com/rtk-ai/rtk> (`.claude/hooks/rtk-rewrite.sh`)
-- Local path: `hooks/rtk_rewrite.py` reimplements its exit-code protocol in Python.
-- License: Apache-2.0 (<https://github.com/rtk-ai/rtk/blob/master/LICENSE>). No upstream code is copied; the hook follows the same protocol.
 
 ## Review page libraries (bundled in `lib/web/vendor/`)
 

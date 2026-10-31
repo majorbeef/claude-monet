@@ -8,7 +8,7 @@ disable-model-invocation: true
 
 Turn the current conversation context and codebase understanding into a specification. Do **not** interview the user; synthesize only what is already settled. This step is for decided work that must survive several sessions or fresh-context hand-offs. Work that fits one context can move directly to `/monet:implement`.
 
-If a substantive product or architecture decision is still open, stop and return to `/monet:interrogate-to-design`. Repository exploration can establish facts, but it cannot settle missing decisions or resolve contradictions between the conversation and governing project authority.
+If a substantive product or architecture decision is still open, stop and return to `/monet:interrogate`. Repository exploration can establish facts, but it cannot settle missing decisions or resolve contradictions between the conversation and governing project authority.
 
 ## Process
 
@@ -93,10 +93,10 @@ Any further settled context needed by a fresh reader. Put stable governing-sourc
 
 ### 4. Sign-off
 
-Read and apply [`operator-sign-off`](../operator-sign-off/SKILL.md) for a document: a cold reader, then the operator's verdict on the specification. The operator's approval marks it ready for `/monet:to-tickets`. Report the path, the confirmed seams, the verdict, and any unresolved factual blockers. Start no ticketing or implementation yourself.
+Read and apply [`sign-off`](../sign-off/SKILL.md) for a document: a cold reader, then the operator's verdict on the specification. The operator's approval marks it ready for `/monet:to-tickets`. Report the path, the confirmed seams, the verdict, and any unresolved factual blockers. Start no ticketing or implementation yourself.
 
 ## Material redesign
 
-The specification is a current task snapshot, not a document kept continuously synchronized with implementation. If a material design pivot occurs, return to `/monet:interrogate-to-design`, resolve the new design completely, then regenerate or amend the same task-local `spec.md` in place. Treat affected existing tickets as stale and regenerate them through `/monet:to-tickets` before implementation resumes. Keep the task bundle pointed in one coherent direction rather than retaining superseded specifications or an internal version chain.
+The specification is a current task snapshot, not a document kept continuously synchronized with implementation. If a material design pivot occurs, return to `/monet:interrogate`, resolve the new design completely, then regenerate or amend the same task-local `spec.md` in place. Treat affected existing tickets as stale and regenerate them through `/monet:to-tickets` before implementation resumes. Keep the task bundle pointed in one coherent direction rather than retaining superseded specifications or an internal version chain.
 
 Once the task is complete, the user may choose to promote the settled specification into an authoritative repository location and commit it. Promotion and commit remain separately authorized; Git then owns durable version history.

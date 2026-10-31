@@ -11,7 +11,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "lib"))
-import monet  # noqa: E402
+import notebook  # noqa: E402
 
 DEFAULT_SPACING = 0  # off unless the user sets a spacing
 MAX_EVIDENCE = 20
@@ -106,10 +106,10 @@ def main():
     if not sid:
         return
     try:
-        spacing = int(monet.option("reflect_every_tokens", DEFAULT_SPACING))
+        spacing = int(notebook.option("reflect_every_tokens", DEFAULT_SPACING))
     except ValueError:
         spacing = DEFAULT_SPACING
-    state_file = monet.notebook_dir() / f"{monet.session_id(sid)}.reflect.json"
+    state_file = notebook.notebook_dir() / f"{notebook.session_id(sid)}.reflect.json"
     try:
         state = json.loads(state_file.read_text())
     except (FileNotFoundError, json.JSONDecodeError):

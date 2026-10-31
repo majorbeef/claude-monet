@@ -6,7 +6,7 @@ disable-model-invocation: true
 
 # Decision review
 
-Expose the trade-off and let the authorized owner decide. Read and follow the [shared process conventions](../handbook-writing/references/processes.md).
+Expose the trade-off and let the authorized owner decide. Read and follow the [shared process conventions](../shared/processes.md).
 
 The decision owner names the chair (possibly themselves), the affected owners and the views that could change the choice. A `product-manager` can own an authorized product choice; `vp-of-product` challenges its value. Select specialists from the risk: security, architecture, maintenance, cost or operational consequences. Use `scientific-skeptic` when the evidence is disputed, not as a substitute for subject expertise.
 

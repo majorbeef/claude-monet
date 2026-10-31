@@ -10,9 +10,9 @@ import urllib.error
 import urllib.request
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent.parent
-sys.path.insert(0, str(ROOT / "lib"))
-import review  # noqa: E402
+from helpers import ROOT
+
+import review
 
 DOC = """---
 title: x

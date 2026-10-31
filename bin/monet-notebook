@@ -2,7 +2,7 @@
 """monet-notebook: this session's notebook of hard-won learnings.
 
 Open learnings are restored into context after every compaction. Durable ones
-are distilled into project files (/monet:distill) and retired.
+are distilled into project files (/monet:learnings distill) and retired.
 """
 import argparse
 import json
@@ -10,7 +10,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "lib"))
-import monet  # noqa: E402
+import notebook  # noqa: E402
 
 
 def main(argv=None):
@@ -40,15 +40,15 @@ def main(argv=None):
 
     args = parser.parse_args(argv)
     try:
-        sid = monet.session_id(args.session)
+        sid = notebook.session_id(args.session)
         if args.command == "add":
-            lid = monet.add_learning(sid, args.content, args.supersedes)
+            lid = notebook.add_learning(sid, args.content, args.supersedes)
             print(f"Recorded [{lid}]")
         elif args.command == "retire":
-            monet.retire_learnings(sid, args.ids, args.reason)
+            notebook.retire_learnings(sid, args.ids, args.reason)
             print(f"Retired {', '.join(args.ids)}")
         elif args.command == "list":
-            open_, everything = monet.fold(monet.read_events(sid))
+            open_, everything = notebook.fold(notebook.read_events(sid))
             items = list(everything.values()) if args.all else open_
             if args.json:
                 print(json.dumps(items, indent=2, ensure_ascii=False))
@@ -57,20 +57,20 @@ def main(argv=None):
             else:
                 for l in items:
                     mark = "" if l["open"] else " (retired)"
-                    print(f"{monet.learning_line(l)}{mark}")
+                    print(f"{notebook.learning_line(l)}{mark}")
         elif args.command == "show":
-            _, everything = monet.fold(monet.read_events(sid))
+            _, everything = notebook.fold(notebook.read_events(sid))
             l = everything.get(args.id)
             if not l:
-                raise monet.NotebookError(f"No learning with id {args.id} in this session")
+                raise notebook.NotebookError(f"No learning with id {args.id} in this session")
             print(json.dumps(l, indent=2, ensure_ascii=False))
         elif args.command == "distill-prompt":
-            learnings = monet.open_learnings(sid)
-            print(monet.distill_prompt(learnings) if learnings else "No open learnings to distill.")
+            learnings = notebook.open_learnings(sid)
+            print(notebook.distill_prompt(learnings) if learnings else "No open learnings to distill.")
         elif args.command == "path":
-            print(monet.notebook_path(sid))
+            print(notebook.notebook_path(sid))
         return 0
-    except monet.NotebookError as error:
+    except notebook.NotebookError as error:
         print(f"monet-notebook: {error}", file=sys.stderr)
         return 1
 

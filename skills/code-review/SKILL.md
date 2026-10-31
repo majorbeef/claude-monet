@@ -28,7 +28,7 @@ The brief holds the boundary, the changed paths, the sources, and the checks alr
 
 Start with the default and grow only for a reason you can name; each member is a full model run.
 
-The **chair** runs the board and rules on findings. The chair is never the author: when the requester wrote the change, a `monet:code-review-specialist` subagent chairs, and the requester takes part only as author. Staff with role subagents as [handbook-writing](../handbook-writing/SKILL.md) describes, and give a large change's paths to reviewers so the chair can check that every changed path was covered. Brief the whole board at once, and tell every member who else sits on it.
+The **chair** runs the board and rules on findings. The chair is never the author: when the requester wrote the change, a `monet:code-review-specialist` subagent chairs, and the requester takes part only as author. Staff with role subagents as [the process conventions](../shared/processes.md) describe, and give a large change's paths to reviewers so the chair can check that every changed path was covered. Brief the whole board at once, and tell every member who else sits on it.
 
 ## Run the board
 

@@ -16,7 +16,7 @@ Take the operator's direction when given: a module, a pain point, an incoming sp
 
 ## The survey board
 
-You chair. Staff with role subagents as [`handbook-writing`](../handbook-writing/SKILL.md) describes, the whole board before briefing anyone:
+You chair. Staff with role subagents as [the process conventions](../shared/processes.md) describe, the whole board before briefing anyone:
 
 - A `repository-archaeologist` scouts the scope: where understanding one concept means bouncing between small modules, where an interface is nearly as complex as its implementation, where extracted pure functions moved the bugs into their callers, where modules leak across seams, and what is hard to test through its current interface. It reports candidate locations with evidence. The same person returns for later surveys of this codebase and keeps learning it.
 - A `chief-architect` challenges each candidate with the **two-stage deletion test**: deleting the existing module makes little complexity reappear (it is shallow), and deleting the proposed deep module would make its hidden behavior reappear across callers. A candidate that fails either stage is out.
@@ -25,7 +25,7 @@ Check every surviving candidate against current source yourself.
 
 ## Report
 
-Write the report as Markdown in the task's directory, and ask for the operator's choice following [`operator-sign-off`](../operator-sign-off/SKILL.md). Lead with the top recommendation, or with the plain statement that no candidate qualified. Then one section per candidate:
+Write the report as Markdown in the task's directory, and ask for the operator's choice following [`sign-off`](../sign-off/SKILL.md). Lead with the top recommendation, or with the plain statement that no candidate qualified. Then one section per candidate:
 
 - **Files** involved, **problem** (the friction), **solution** in plain words, and **benefits** (locality, leverage, how tests improve);
 - a **before / after** `mermaid` diagram showing the shallowness and the deepening;
@@ -35,4 +35,4 @@ Describe the change, not a detailed interface; the interface is designed after t
 
 ## Hand-off
 
-When the operator chooses a candidate, name the next step: `/monet:interrogate-to-design` with that candidate, which designs the deepened module through an interview and Design It Twice where alternatives matter. Report the report's path, the choice, and that no production code changed.
+When the operator chooses a candidate, name the next step: `/monet:interrogate <candidate> record`, which designs the deepened module through an interview and Design It Twice where alternatives matter. Report the report's path, the choice, and that no production code changed.

@@ -57,7 +57,7 @@ Write the drafts into the bundle, one file per ticket under `.ledger/<task>/tick
 
 Before the operator sees them, give a `monet:principal-engineer` subagent the bundle path and ask it to check the slicing, the blocking edges, and the acceptance criteria against the repository. Fix what it finds.
 
-Then read and apply [`operator-sign-off`](../operator-sign-off/SKILL.md) for a ledger task (plan boundary): a cold reader, then the operator's verdict on the task. The verdict is the approval; apply its comments to the ticket files. Until it is approved, the tickets are drafts and nobody implements them.
+Then read and apply [`sign-off`](../sign-off/SKILL.md) for a ledger task (plan boundary): a cold reader, then the operator's verdict on the task. The verdict is the approval; apply its comments to the ticket files. Until it is approved, the tickets are drafts and nobody implements them.
 
 Work the **frontier**: any ticket whose blockers are all done. `Status: ready-for-agent` means a ticket is specified well enough for a fresh agent, not that it is on the frontier. Later status changes belong to the implementation workflow. Leave the parent specification or issue unchanged.
 

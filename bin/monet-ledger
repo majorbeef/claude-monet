@@ -7,7 +7,8 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "lib"))
-import monet  # noqa: E402
+import ledger  # noqa: E402
+import notebook  # noqa: E402
 
 
 def main(argv=None):
@@ -23,7 +24,7 @@ def main(argv=None):
 
     status = sub.add_parser("status", help="move a live task to a new status; done/cancelled archive it to history")
     status.add_argument("task", help="task id, .ledger/<id>, or .ledger/<id>/task.md")
-    status.add_argument("status", choices=monet.STATUSES)
+    status.add_argument("status", choices=ledger.STATUSES)
     status.add_argument(
         "--learnings-distilled",
         action="store_true",
@@ -34,14 +35,14 @@ def main(argv=None):
     sub.add_parser("contract", help="print the ledger working agreement")
 
     args = parser.parse_args(argv)
-    root = Path(args.root).resolve() if args.root else monet.find_root(os.getcwd())
+    root = Path(args.root).resolve() if args.root else ledger.find_root(os.getcwd())
 
     try:
         if args.command == "contract":
-            print(monet.LEDGER_CONTRACT)
+            print(ledger.LEDGER_CONTRACT)
             return 0
         if args.command == "list":
-            tasks = monet.live_tasks(root)
+            tasks = ledger.live_tasks(root)
             if args.json:
                 print(json.dumps(tasks, indent=2))
             elif not tasks:
@@ -51,26 +52,26 @@ def main(argv=None):
                     print(f"{t['taskPath']} — {t['status']} — {t['title']}")
             return 0
         if args.command == "add":
-            result = monet.add_task(root, args.title, args.description, args.slug)
+            result = ledger.add_task(root, args.title, args.description, args.slug)
             print(json.dumps(result) if args.json else f"Added {result['taskPath']}")
             return 0
         if args.command == "status":
-            if args.status in monet.CLOSED_STATUSES and not args.learnings_distilled:
+            if args.status in ledger.CLOSED_STATUSES and not args.learnings_distilled:
                 sid = os.environ.get("MONET_SESSION_ID")
-                learnings = monet.open_learnings(sid) if sid else []
+                learnings = notebook.open_learnings(sid) if sid else []
                 if learnings:
                     print(
                         "Not closed yet: this session has open notebook learnings. Distill them while this task's "
                         "retrospective.md is still live (lessons about this task belong there), then run this command "
-                        "again with --learnings-distilled.\n\n" + monet.distill_prompt(learnings),
+                        "again with --learnings-distilled.\n\n" + notebook.distill_prompt(learnings),
                         file=sys.stderr,
                     )
                     return 3
-            result = monet.set_status(root, args.task, args.status)
-            verb = "Archived" if args.status in monet.CLOSED_STATUSES else "Moved"
+            result = ledger.set_status(root, args.task, args.status)
+            verb = "Archived" if args.status in ledger.CLOSED_STATUSES else "Moved"
             print(json.dumps(result) if args.json else f"{verb} {result['taskPath']} to {result['status']}")
             return 0
-    except (monet.LedgerError, monet.NotebookError) as error:
+    except (ledger.LedgerError, notebook.NotebookError) as error:
         print(f"monet-ledger: {error}", file=sys.stderr)
         return 1
 

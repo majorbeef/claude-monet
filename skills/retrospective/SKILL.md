@@ -6,7 +6,7 @@ disable-model-invocation: true
 
 # Retrospective
 
-Learn something that changes future action without inventing a tidy causal story. Read and follow the [shared process conventions](../handbook-writing/references/processes.md).
+Learn something that changes future action without inventing a tidy causal story. Read and follow the [shared process conventions](../shared/processes.md).
 
 Include people who did and received the work. A `coordinator` can facilitate; choose another facilitator when the owner's decisions are central. Use domain expertise for disputed explanations and `technical-writer` when the lasting record needs care.
 

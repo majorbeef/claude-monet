@@ -4,7 +4,6 @@ On every start, resume, clear, and compaction it adds:
   - the project's .claude/LEARNINGS.md
   - how to use the session notebook
   - the ledger working agreement, when the project has a .ledger/
-  - the RTK note, when RTK rewriting is on
 After a compaction it also restores this session's open learnings.
 """
 import json
@@ -14,8 +13,8 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "lib"))
-import monet  # noqa: E402
-import rtk_rewrite  # noqa: E402
+import ledger  # noqa: E402
+import notebook  # noqa: E402
 
 
 def main():
@@ -33,28 +32,25 @@ def main():
             f.write(f"export MONET_SESSION_ID={shlex.quote(sid)}\n")
 
     sections = []
-    learnings_file = project / monet.PROJECT_LEARNINGS
+    learnings_file = project / notebook.PROJECT_LEARNINGS
     if learnings_file.is_file():
         text = learnings_file.read_text().strip()
         if text:
             sections.append(
                 f"## Project learnings\n\nLearnings from earlier sessions in this project, kept in "
-                f"`{monet.PROJECT_LEARNINGS}`. Apply them; the user's instructions and CLAUDE.md take precedence.\n\n{text}"
+                f"`{notebook.PROJECT_LEARNINGS}`. Apply them; the user's instructions and CLAUDE.md take precedence.\n\n{text}"
             )
 
-    sections.append(monet.NOTEBOOK_USAGE)
+    sections.append(notebook.NOTEBOOK_USAGE)
 
-    ledger_root = monet.find_root(project)
+    ledger_root = ledger.find_root(project)
     if (ledger_root / ".ledger").is_dir():
-        sections.append("## Ledger\n\n" + monet.LEDGER_CONTRACT)
-
-    if rtk_rewrite.enabled():
-        sections.append(rtk_rewrite.PROMPT)
+        sections.append("## Ledger\n\n" + ledger.LEDGER_CONTRACT)
 
     if source == "compact" and sid:
         try:
-            packet = monet.compaction_packet(monet.open_learnings(sid))
-        except monet.NotebookError:
+            packet = notebook.compaction_packet(notebook.open_learnings(sid))
+        except notebook.NotebookError:
             packet = ""
         if packet:
             sections.append(packet)
