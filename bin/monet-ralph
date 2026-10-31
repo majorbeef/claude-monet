@@ -1,0 +1,236 @@
+#!/usr/bin/env python3
+"""monet-ralph: bounded fresh-context Ralph loop over `claude -p`.
+
+Each iteration starts a new headless Claude Code session with an empty context,
+which makes one increment toward the goal and exits. The repository (and an
+optional ledger task) is the only memory between iterations.
+
+Stops when:
+  - the requested number of iterations has run (status: completed)
+  - a worker session fails (status: failed)
+  - the ledger task's Status becomes done, blocked, or cancelled (status: stopped)
+  - two consecutive iterations barely change the working tree (status: stopped,
+    stopReason: low-mutation). That is an escape hatch, not a judgment that the
+    goal is complete.
+
+Prints a JSON summary on stdout; progress goes to stderr.
+"""
+import argparse
+import datetime
+import hashlib
+import json
+import os
+import re
+import subprocess
+import sys
+from pathlib import Path
+
+LOW_MUTATION_SCORE = 3
+MAX_CONSECUTIVE_LOW_MUTATION = 2
+CLOSED_STATUS = re.compile(r"(?m)^Status:\s*(done|blocked|cancelled)\s*$")
+WORKER_BOUNDARY = (
+    "Implement one coherent increment. Never commit, push, merge, deploy, publish, reset, "
+    "or invoke review. The caller owns validation and integration."
+)
+
+
+def log(message):
+    print(f"[ralph] {message}", file=sys.stderr, flush=True)
+
+
+def git(args, cwd):
+    return subprocess.run(["git", *args], cwd=cwd, capture_output=True, text=True)
+
+
+def snapshot(cwd, exclude_ledger):
+    """The working tree's change against HEAD plus fingerprints of untracked files."""
+    pathspec = [".", ":(exclude).ledger/**"] if exclude_ledger else ["."]
+    diff = git(["diff", "HEAD", "--", *pathspec], cwd)
+    if diff.returncode != 0:  # no commits yet
+        diff = git(["diff", "--", *pathspec], cwd)
+    untracked = git(["ls-files", "--others", "--exclude-standard", "-z", "--", *pathspec], cwd)
+    prints = {}
+    for path in filter(None, untracked.stdout.split("\0")):
+        try:
+            prints[path] = hashlib.sha1(Path(cwd, path).read_bytes()).hexdigest()
+        except OSError:
+            prints[path] = "UNREADABLE"
+    return {"patch": diff.stdout, "untracked": prints}
+
+
+def changed_lines(before, after):
+    if before == after:
+        return 0
+    prefix = 0
+    limit = min(len(before), len(after))
+    while prefix < limit and before[prefix] == after[prefix]:
+        prefix += 1
+    suffix = 0
+    while (
+        suffix < min(len(before), len(after)) - prefix
+        and before[len(before) - suffix - 1] == after[len(after) - suffix - 1]
+    ):
+        suffix += 1
+    b = before[prefix : len(before) - suffix]
+    a = after[prefix : len(after) - suffix]
+    return max(len([l for l in b.splitlines() if l]), len([l for l in a.splitlines() if l]))
+
+
+def mutation_score(before, after):
+    paths = set(before["untracked"]) | set(after["untracked"])
+    untracked_changes = sum(1 for p in paths if before["untracked"].get(p) != after["untracked"].get(p))
+    return changed_lines(before["patch"], after["patch"]) + untracked_changes * LOW_MUTATION_SCORE
+
+
+def task_closed(task_file):
+    if not task_file:
+        return None
+    try:
+        match = CLOSED_STATUS.search(Path(task_file).read_text())
+    except FileNotFoundError:
+        return "missing"  # ledger archived it to history (done/cancelled)
+    return match.group(1) if match else None
+
+
+def resolve_task(cwd, task):
+    """Accept a task id, .ledger/<id>, or .ledger/<id>/task.md; return the task.md path."""
+    if not task:
+        return None
+    path = Path(task)
+    if not path.is_absolute():
+        path = Path(cwd, task)
+    if path.is_dir():
+        path = path / "task.md"
+    if not path.exists() and re.fullmatch(r"\d{12}-[a-z0-9-]+", task):
+        path = Path(cwd, ".ledger", task, "task.md")
+    if not path.exists():
+        raise SystemExit(f"monet-ralph: ledger task not found: {task}")
+    return str(path)
+
+
+def build_prompt(increment, goal, context):
+    parts = [increment.strip(), WORKER_BOUNDARY, "## Goal\n\n" + goal.strip()]
+    if context:
+        parts.append("## Context paths (read these first)\n\n" + "\n".join(f"- {c}" for c in context))
+    return "\n\n".join(parts) + "\n"
+
+
+def run_worker(args, prompt, cwd):
+    cmd = [args.claude_bin, "-p", prompt, "--output-format", "json"]
+    if args.permission_mode:
+        cmd += ["--permission-mode", args.permission_mode]
+    if args.agent:
+        cmd += ["--agent", args.agent]
+    if args.model:
+        cmd += ["--model", args.model]
+    cmd += args.claude_args
+    proc = subprocess.run(cmd, cwd=cwd, capture_output=True, text=True)
+    result = {"exitCode": proc.returncode}
+    try:
+        data = json.loads(proc.stdout)
+        result.update(
+            isError=bool(data.get("is_error")),
+            text=data.get("result", ""),
+            costUsd=data.get("total_cost_usd"),
+            turns=data.get("num_turns"),
+        )
+    except (json.JSONDecodeError, AttributeError):
+        result.update(isError=True, text=(proc.stdout or "").strip())
+    if proc.returncode != 0:
+        result["isError"] = True
+        result["stderr"] = proc.stderr.strip()[-2000:]
+    return result
+
+
+def append_log(log_file, iteration, worker, score):
+    if not log_file:
+        return
+    stamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
+    with open(log_file, "a") as f:
+        f.write(f"\n## Iteration {iteration} ({stamp}, mutation score {score})\n\n{worker.get('text', '').strip()}\n")
+
+
+def main(argv=None):
+    parser = argparse.ArgumentParser(
+        prog="monet-ralph",
+        description="Run bounded fresh-context Ralph iterations with `claude -p`.",
+        epilog="Arguments after `--` are passed to every `claude -p` call.",
+    )
+    goal = parser.add_mutually_exclusive_group(required=True)
+    goal.add_argument("--goal", help="the bounded goal, inline")
+    goal.add_argument("--goal-file", help="file holding the goal")
+    parser.add_argument("--iterations", "-n", type=int, required=True, help="maximum iterations (positive)")
+    parser.add_argument("--prompt-file", help="adapted increment prompt (default: bundled simple/ledger template)")
+    parser.add_argument("--task", help="ledger task (id, .ledger/<id>, or task.md); enables ledger mode")
+    parser.add_argument("--context", action="append", default=[], help="path the worker reads first (repeatable)")
+    parser.add_argument("--agent", default="monet:implementation-engineer", help="subagent each worker runs as ('' for none)")
+    parser.add_argument("--permission-mode", default="acceptEdits", help="worker permission mode (default: acceptEdits)")
+    parser.add_argument("--model", help="worker model")
+    parser.add_argument("--log", help="append each worker's report here (default: ralph-log.md in the ledger task)")
+    parser.add_argument("--claude-bin", default=os.environ.get("MONET_CLAUDE_BIN", "claude"), help=argparse.SUPPRESS)
+    parser.add_argument("--dry-run", action="store_true", help="print the worker prompt and exit")
+    argv = sys.argv[1:] if argv is None else argv
+    extra = []
+    if "--" in argv:
+        i = argv.index("--")
+        argv, extra = argv[:i], argv[i + 1 :]
+    args = parser.parse_args(argv)
+    args.claude_args = extra
+    if args.iterations < 1:
+        parser.error("--iterations must be a positive integer")
+
+    cwd = os.getcwd()
+    top = git(["rev-parse", "--show-toplevel"], cwd)
+    if top.returncode != 0:
+        parser.error("run monet-ralph inside a git repository")
+    goal_text = args.goal if args.goal is not None else Path(args.goal_file).read_text()
+    if not goal_text.strip():
+        parser.error("the goal is empty")
+    task_file = resolve_task(cwd, args.task)
+    template = "ledger-increment.md" if task_file else "simple-increment.md"
+    prompt_file = args.prompt_file or Path(__file__).resolve().parent.parent / "skills/ralph/references" / template
+    increment = Path(prompt_file).read_text()
+    context = list(dict.fromkeys(([os.path.relpath(task_file, cwd)] if task_file else []) + args.context))
+    log_file = args.log or (str(Path(task_file).parent / "ralph-log.md") if task_file else None)
+    prompt = build_prompt(increment, goal_text, context)
+    if args.dry_run:
+        print(prompt)
+        return 0
+
+    summary = {"requestedIterations": args.iterations, "completedIterations": 0, "iterations": []}
+
+    def finish(status, **extra_fields):
+        summary.update(status=status, **extra_fields)
+        print(json.dumps(summary, indent=2))
+        return 0 if status != "failed" else 1
+
+    low_streak = 0
+    for iteration in range(1, args.iterations + 1):
+        closed = task_closed(task_file)
+        if closed:
+            return finish("stopped", stopReason=f"task-{closed}")
+        before = snapshot(cwd, bool(task_file))
+        log(f"iteration {iteration}/{args.iterations}: starting a fresh worker")
+        worker = run_worker(args, prompt, cwd)
+        if worker["isError"]:
+            log(f"iteration {iteration} failed")
+            summary["iterations"].append({"iteration": iteration, "error": worker.get("stderr") or worker.get("text")})
+            return finish("failed", failedAt=iteration)
+        score = mutation_score(before, snapshot(cwd, bool(task_file)))
+        append_log(log_file, iteration, worker, score)
+        summary["completedIterations"] = iteration
+        summary["iterations"].append(
+            {"iteration": iteration, "mutationScore": score, "turns": worker.get("turns"), "costUsd": worker.get("costUsd")}
+        )
+        log(f"iteration {iteration} done (mutation score {score})")
+        closed = task_closed(task_file)
+        if closed:
+            return finish("stopped", stopReason=f"task-{closed}")
+        low_streak = low_streak + 1 if score < LOW_MUTATION_SCORE else 0
+        if low_streak >= MAX_CONSECUTIVE_LOW_MUTATION:
+            return finish("stopped", stopReason="low-mutation")
+    return finish("completed")
+
+
+if __name__ == "__main__":
+    sys.exit(main())

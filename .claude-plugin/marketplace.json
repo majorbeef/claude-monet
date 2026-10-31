@@ -1,0 +1,14 @@
+{
+  "name": "claude-monet",
+  "description": "apple-pi's skills, roles, notebook, ledger, and Ralph loops, adapted for Claude Code",
+  "owner": {
+    "name": "crweidert"
+  },
+  "plugins": [
+    {
+      "name": "monet",
+      "source": "./",
+      "description": "Skills, role subagents, session notebook, ledger, and Ralph loops adapted from apple-pi"
+    }
+  ]
+}
