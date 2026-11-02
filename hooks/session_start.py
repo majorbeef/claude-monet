@@ -17,6 +17,10 @@ import ledger  # noqa: E402
 import notebook  # noqa: E402
 
 
+# Above this, the always-loaded learnings file costs more than it is likely worth.
+LEARNINGS_BUDGET = 1500
+
+
 def main():
     try:
         event = json.load(sys.stdin)
@@ -36,6 +40,14 @@ def main():
     if learnings_file.is_file():
         text = learnings_file.read_text().strip()
         if text:
+            tokens = len(text) // 4
+            if tokens > LEARNINGS_BUDGET:
+                text += (
+                    f"\n\n(Note: `{notebook.PROJECT_LEARNINGS}` is about {tokens:,} tokens and loads into every "
+                    f"session. At a natural pause, offer to trim it under {LEARNINGS_BUDGET:,}: merge duplicates, "
+                    "drop lines that no longer hold, and move narrow lessons to the docs or a ledger "
+                    "retrospective. `/monet:learnings promote` can move proven ones into CLAUDE.md.)"
+                )
             sections.append(
                 f"## Project learnings\n\nLearnings from earlier sessions in this project, kept in "
                 f"`{notebook.PROJECT_LEARNINGS}`. Apply them; the user's instructions and CLAUDE.md take precedence.\n\n{text}"

@@ -61,9 +61,23 @@ monet-ledger list
 
 Claude uses it through the `sign-off` skill for document sign-offs. You can also ask for it directly: "let me review docs/spec.md". The page is served only on `127.0.0.1` behind a one-time token. It renders Markdown with bundled copies of marked and DOMPurify, and raw HTML in the document is shown as text. Mermaid diagrams load Mermaid from jsDelivr, but only when the document has one.
 
-### Trimming command output with RTK
+## Keeping token use down
 
-The plugin doesn't wrap Bash itself. For noisy commands (test runners, `git`, build tools), [RTK](https://github.com/rtk-ai/rtk) rewrites them into compact equivalents and ships its own Claude Code hook:
+**Generated-file guard (on by default).** A hook stops Claude from reading a large generated file whole: lockfiles, `node_modules/`, `dist/`, `build/`, `target/`, minified bundles, source maps, and snapshots over 20 KB. Claude is told to `grep` it or read a slice instead. Small files pass (a library's type definitions in `node_modules` are often worth reading), and so do reads that ask for a slice. To read a whole one anyway, ask Claude to, and turn the guard off for that session with `MONET_GENERATED_GUARD=0`.
+
+**`LEARNINGS.md` budget.** `.claude/LEARNINGS.md` loads into every session. Once it passes about 1,500 tokens, the session-start hook asks Claude to offer a trim.
+
+**Status line.** `monet-statusline` shows the model, how full the context window is (yellow past 50%, red with a `/compact?` hint past 75%), the prompt-cache hit rate, and the session cost:
+
+```
+Opus · ▓▓▓░░░░░░░ 34% ctx · cache 92% · $1.23
+```
+
+Plugins can't set the main status line, so install it once: ask Claude to run `monet-statusline --install`. It copies the script to `~/.claude/monet/` and sets `statusLine` in `~/.claude/settings.json`, backing the file up first. It won't replace a status line you already have unless you add `--force`.
+
+**Shorter replies.** Claude Code's built-in Concise style cuts preamble and recaps from every reply: `/output-style concise`.
+
+**Compact command output with RTK.** For noisy commands (test runners, `git`, build tools), [RTK](https://github.com/rtk-ai/rtk) rewrites them into compact equivalents and ships its own Claude Code hook:
 
 ```
 brew install rtk     # or see RTK's install guide
@@ -72,19 +86,22 @@ rtk init -g          # installs RTK's PreToolUse hook for Claude Code
 
 RTK's hook only auto-approves a rewritten command when your permission rules already allow the original; everything else still goes through the normal prompt.
 
+**Habits that need no tooling:** `/clear` between unrelated tasks, `/compact <what to keep>` before the window fills, `/context` to see what is using it, and turning off MCP servers you don't use.
+
 ## Configuration
 
 Set these in `/config` (plugin options), or override them with environment variables:
 
 | Option | Env override | Default | |
 | --- | --- | --- | --- |
+| `generated_guard` | `MONET_GENERATED_GUARD=0` | on | Block whole reads of large generated files (threshold: `MONET_GENERATED_GUARD_BYTES`, default 20000) |
 | `reflect_every_tokens` | `MONET_REFLECT_EVERY_TOKENS` | 0 (off) | Tokens between automatic reflections (500000 is a reasonable value) |
 | | `MONET_NOTEBOOK_DIR` | `~/.claude/monet/notebooks` | Where notebooks are stored |
 
 ## Development
 
 ```
-python3 -m unittest discover -s tests   # CLIs, hooks, the review server, and skill links
+python3 -m unittest discover -s tests   # CLIs, hooks, the review server, the status line, and skill links
 claude plugin validate .
 ```
 

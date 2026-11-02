@@ -14,6 +14,12 @@
     "learnings"
   ],
   "userConfig": {
+    "generated_guard": {
+      "type": "boolean",
+      "title": "Block whole reads of large generated files",
+      "description": "Stop Claude from reading whole lockfiles, dependency and build folders, minified bundles, and snapshots over 20 KB. It is told to search or read a slice instead.",
+      "default": true
+    },
     "reflect_every_tokens": {
       "type": "number",
       "title": "Tokens between learning reflections",
