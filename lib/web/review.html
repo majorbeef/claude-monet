@@ -1,0 +1,694 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<title>Review: __TITLE__</title>
+<style>
+:root {
+  --bg: #fbfaf8; --panel: #ffffff; --ink: #1d1d1f; --muted: #6b6b70; --line: #e4e2dd; --accent: #2f6fde;
+  --accent-ink: #ffffff; --hover: #f2f0ec; --code-bg: #f4f2ee;
+  --c-comment: #fde68a; --c-good: #bbf7d0; --c-clarify: #bfdbfe; --c-delete: #fecaca; --c-suggest: #fecaca;
+  --ins: #15803d; --del: #b91c1c; --shadow: 0 8px 30px rgba(0,0,0,.12);
+  --alert-note: #2f6fde; --alert-tip: #15803d; --alert-important: #7c3aed; --alert-warning: #b45309; --alert-caution: #b91c1c;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #17171a; --panel: #1f1f23; --ink: #ececef; --muted: #9a9aa2; --line: #33333a; --accent: #6b9cff;
+    --accent-ink: #0b0b0d; --hover: #26262b; --code-bg: #26262b;
+    --c-comment: rgba(250, 204, 21, .32); --c-good: rgba(34, 197, 94, .3); --c-clarify: rgba(59, 130, 246, .35);
+    --c-delete: rgba(239, 68, 68, .35); --c-suggest: rgba(239, 68, 68, .35); --ins: #4ade80; --del: #f87171;
+    --shadow: 0 8px 30px rgba(0,0,0,.5);
+  }
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; background: var(--bg); color: var(--ink); }
+body { font: 16px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+button { font: inherit; color: inherit; cursor: pointer; }
+textarea, input { font: inherit; color: var(--ink); background: var(--panel); }
+
+/* Top bar */
+.top { position: sticky; top: 0; z-index: 20; display: flex; align-items: center; gap: 12px; padding: 10px 20px;
+  background: var(--panel); border-bottom: 1px solid var(--line); }
+.top .title { min-width: 0; flex: 1; }
+.top .title b { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.top .title span { color: var(--muted); font-size: 13px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+.btn { border: 1px solid var(--line); background: var(--panel); border-radius: 8px; padding: 6px 12px; font-size: 14px; }
+.btn:hover { background: var(--hover); }
+.btn.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); font-weight: 600; }
+.btn.primary:hover { filter: brightness(1.08); }
+.btn.small { padding: 2px 8px; font-size: 13px; }
+.count { display: inline-block; min-width: 20px; padding: 0 6px; margin-left: 4px; border-radius: 10px; background: var(--hover);
+  font-size: 12px; text-align: center; }
+
+/* Layout */
+.layout { display: grid; grid-template-columns: 240px minmax(0, 1fr); gap: 32px; max-width: 1180px; margin: 0 auto; padding: 24px 20px 120px; }
+.outline { position: sticky; top: 76px; align-self: start; max-height: calc(100vh - 100px); overflow: auto; font-size: 14px; }
+.outline h4 { margin: 0 0 8px; font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+.outline a { display: flex; justify-content: space-between; gap: 6px; padding: 3px 8px; border-radius: 6px; color: var(--muted);
+  text-decoration: none; border-left: 2px solid transparent; }
+.outline a:hover { background: var(--hover); color: var(--ink); }
+.outline a.active { color: var(--ink); border-left-color: var(--accent); background: var(--hover); }
+.outline a .count { flex: none; }
+@media (max-width: 860px) { .layout { grid-template-columns: 1fr; } .outline { display: none; } }
+
+.note-banner { margin: 0 0 20px; padding: 10px 14px; border-left: 3px solid var(--accent); background: var(--panel);
+  border-radius: 0 8px 8px 0; }
+.help-line { color: var(--muted); font-size: 13px; margin: 0 0 24px; }
+.ended { margin: 0 0 20px; padding: 10px 14px; border-radius: 8px; background: var(--c-delete); display: none; }
+
+/* Blocks */
+.doc { max-width: 760px; }
+.blk { position: relative; margin: 0 -14px; padding: 2px 14px; border-radius: 8px; }
+.blk:hover { background: var(--hover); }
+/* The tools sit beside the block; their left padding bridges the gap so the hover never breaks on the way to them. */
+.blk .tools { position: absolute; left: 100%; top: 0; padding: 4px 4px 4px 6px; display: none; flex-direction: column; gap: 4px; }
+.blk:hover .tools, .blk:focus-within .tools { display: flex; }
+@media (max-width: 1100px) { .blk .tools { left: auto; right: 6px; padding: 4px 0; flex-direction: row; } }
+.tool { border: 1px solid var(--line); background: var(--panel); border-radius: 6px; width: 30px; height: 28px; font-size: 14px; }
+.tool:hover { background: var(--hover); }
+.blk.has-block-ann { box-shadow: inset 3px 0 0 var(--c-comment); }
+.blk .badges { display: flex; gap: 6px; flex-wrap: wrap; margin: 4px 0; }
+.badge { font-size: 12px; padding: 1px 8px; border-radius: 10px; background: var(--hover); border: 1px solid var(--line); cursor: pointer; }
+.badge.rewritten { background: var(--c-good); border-color: transparent; }
+.content > :first-child { margin-top: 8px; }
+.content > :last-child { margin-bottom: 8px; }
+.content h1, .content h2, .content h3 { line-height: 1.25; }
+.content h1 { font-size: 2em; margin-top: 16px; }
+.content pre { background: var(--code-bg); padding: 12px 14px; border-radius: 8px; overflow: auto; font-size: 13.5px; line-height: 1.5; }
+.content code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .9em; }
+.content :not(pre) > code { background: var(--code-bg); padding: 1px 5px; border-radius: 4px; }
+.content table { border-collapse: collapse; display: block; overflow: auto; }
+.content th, .content td { border: 1px solid var(--line); padding: 6px 10px; text-align: left; }
+.content blockquote { margin: 8px 0; padding: 2px 14px; border-left: 3px solid var(--line); color: var(--muted); }
+.content blockquote.alert { color: var(--ink); border-left-color: var(--alert-color); background: var(--panel); border-radius: 0 8px 8px 0; }
+.content blockquote.alert .alert-title { font-weight: 600; color: var(--alert-color); margin: 8px 0 0; }
+.content img { max-width: 100%; }
+.content a { color: var(--accent); }
+.content .refs, .content .frontmatter { color: var(--muted); }
+.content .mermaid-out { user-select: none; text-align: center; overflow: auto; }
+.content .mermaid-out svg { max-width: 100%; height: auto; }
+.content .warn { color: var(--muted); font-size: 13px; }
+
+mark.ann { color: inherit; border-radius: 2px; cursor: pointer; padding: 0; }
+mark.ann.t-comment { background: var(--c-comment); }
+mark.ann.l-good { background: var(--c-good); }
+mark.ann.l-clarify { background: var(--c-clarify); }
+mark.ann.t-delete, mark.ann.t-suggest { background: var(--c-delete); text-decoration: line-through; text-decoration-color: var(--del); }
+ins.sugg { text-decoration: none; color: var(--ins); background: rgba(34, 197, 94, .14); border-radius: 2px; padding: 0 2px; white-space: pre-wrap; }
+mark.ann.flash { outline: 2px solid var(--accent); }
+
+/* Diff */
+.diff { font: 13px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace; background: var(--code-bg); border-radius: 8px; padding: 8px 0; margin: 8px 0; overflow: auto; }
+.diff div { padding: 0 12px; white-space: pre-wrap; }
+.diff .add { color: var(--ins); background: rgba(34, 197, 94, .12); }
+.diff .rem { color: var(--del); background: rgba(239, 68, 68, .12); }
+
+/* Floating UI */
+.pop { position: absolute; z-index: 40; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; box-shadow: var(--shadow);
+  padding: 8px; width: min(420px, calc(100vw - 32px)); }
+.pop.toolbar { width: auto; display: flex; align-items: center; gap: 4px; padding: 4px; }
+.pop.toolbar input { border: 1px solid var(--line); border-radius: 6px; padding: 4px 8px; width: 220px; }
+.pop textarea { width: 100%; min-height: 80px; border: 1px solid var(--line); border-radius: 6px; padding: 8px; resize: vertical; }
+.pop textarea.code { font: 13px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace; min-height: 160px; }
+.pop .row { display: flex; gap: 6px; justify-content: flex-end; margin-top: 8px; align-items: center; }
+.pop .row .hint { margin-right: auto; color: var(--muted); font-size: 12px; }
+.pop .quote { color: var(--muted); font-size: 13px; border-left: 3px solid var(--line); padding-left: 8px; margin: 0 0 8px;
+  max-height: 90px; overflow: auto; white-space: pre-wrap; }
+.pop .item { border-top: 1px solid var(--line); padding: 8px 0; }
+.pop .item:first-child { border-top: 0; padding-top: 0; }
+.pop h5 { margin: 0 0 6px; font-size: 13px; }
+
+/* Drawer */
+.drawer { position: fixed; top: 0; right: 0; bottom: 0; width: min(420px, 100vw); z-index: 30; background: var(--panel);
+  border-left: 1px solid var(--line); box-shadow: var(--shadow); transform: translateX(100%); transition: transform .18s ease;
+  display: flex; flex-direction: column; }
+.drawer.open { transform: none; }
+.drawer header { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; border-bottom: 1px solid var(--line); }
+.drawer .list { overflow: auto; padding: 8px 16px 24px; }
+.ann-item { padding: 10px 0; border-bottom: 1px solid var(--line); font-size: 14px; }
+.ann-item .k { font-weight: 600; }
+.ann-item .where { color: var(--muted); font-size: 12px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+.ann-item .q { color: var(--muted); border-left: 3px solid var(--line); padding-left: 8px; margin: 4px 0; white-space: pre-wrap; max-height: 80px; overflow: hidden; }
+.ann-item .acts { display: flex; gap: 6px; margin-top: 6px; }
+
+/* Modal */
+.modal-bg { position: fixed; inset: 0; z-index: 50; background: rgba(0,0,0,.35); display: none; align-items: center; justify-content: center; padding: 16px; }
+.modal-bg.open { display: flex; }
+.modal { background: var(--panel); border-radius: 12px; box-shadow: var(--shadow); width: min(560px, 100%); padding: 20px; max-height: 90vh; overflow: auto; }
+.modal h3 { margin: 0 0 12px; }
+.verdicts { display: grid; gap: 8px; margin: 12px 0; }
+.verdicts label { display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px; cursor: pointer; }
+.verdicts label:has(input:checked) { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+.verdicts small { display: block; color: var(--muted); }
+.modal textarea { width: 100%; min-height: 90px; border: 1px solid var(--line); border-radius: 8px; padding: 8px; }
+.modal .row { display: flex; gap: 8px; justify-content: flex-end; margin-top: 14px; align-items: center; }
+.modal .row .left { margin-right: auto; }
+.modal .summary { color: var(--muted); font-size: 14px; }
+.modal pre.copy { white-space: pre-wrap; background: var(--code-bg); padding: 10px; border-radius: 8px; max-height: 300px; overflow: auto; font-size: 12.5px; }
+kbd { font: 12px ui-monospace, SFMono-Regular, Menlo, monospace; border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 4px; padding: 0 5px; background: var(--hover); }
+.keys td { padding: 4px 12px 4px 0; }
+.toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: var(--ink); color: var(--bg); padding: 8px 14px;
+  border-radius: 8px; z-index: 60; font-size: 14px; display: none; }
+.done-screen { max-width: 560px; margin: 80px auto; text-align: center; padding: 0 16px; }
+</style>
+</head>
+<body>
+<!--__VENDOR__-->
+<div class="top">
+  <div class="title"><b id="title"></b><span id="path"></span></div>
+  <button class="btn" id="overall-btn" title="Overall comment">Overall comment</button>
+  <button class="btn" id="list-btn" title="All annotations (A)">Annotations<span class="count" id="ann-count">0</span></button>
+  <button class="btn primary" id="finish-btn" title="Finish review (⌘↵)">Finish review</button>
+</div>
+<div class="layout">
+  <nav class="outline" id="outline"><h4>Outline</h4></nav>
+  <main class="doc">
+    <div class="ended" id="ended">This review session has ended, so feedback can no longer be sent to Claude. Use <b>Finish review → Copy feedback</b> to keep it.</div>
+    <div class="note-banner" id="note" hidden></div>
+    <p class="help-line">Select text to comment, label, delete, or suggest a rewrite. Hover a block to comment on it or rewrite it. <kbd>?</kbd> for keys.</p>
+    <div id="doc"></div>
+  </main>
+</div>
+<aside class="drawer" id="drawer">
+  <header><b>Annotations</b><button class="btn small" id="drawer-close">Close</button></header>
+  <div class="list" id="ann-list"></div>
+</aside>
+<div class="modal-bg" id="modal-bg"><div class="modal" id="modal"></div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+"use strict";
+const PAGE = /*__PAGE_DATA__*/null;
+const $ = (sel, el = document) => el.querySelector(sel);
+const el = (tag, attrs = {}, ...kids) => {
+  const e = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs)) {
+    if (k === "class") e.className = v;
+    else if (k.startsWith("on")) e.addEventListener(k.slice(2), v);
+    else if (v !== undefined && v !== null && v !== false) e.setAttribute(k, v === true ? "" : v);
+  }
+  for (const kid of kids.flat()) if (kid !== null && kid !== undefined) e.append(kid.nodeType ? kid : String(kid));
+  return e;
+};
+const blocks = PAGE.blocks;
+const byId = Object.fromEntries(blocks.map(b => [b.id, b]));
+const LABELS = { good: "👍 Looks good", clarify: "❓ Clarify this" };
+const KIND = { comment: "Comment", delete: "Delete", suggest: "Suggested rewrite" };
+const kindOf = a => a.type === "label" ? LABELS[a.label] : KIND[a.type];
+
+// ---------------------------------------------------------------- state (kept across reloads)
+const STORE = "monet-review:" + PAGE.token;
+let state = { annotations: [], edits: {}, overall: "", verdict: "approve" };
+try { const saved = JSON.parse(localStorage.getItem(STORE) || "null"); if (saved) state = Object.assign(state, saved); } catch (e) {}
+let nextId = state.annotations.reduce((m, a) => Math.max(m, a.id), 0) + 1;
+function save() { try { localStorage.setItem(STORE, JSON.stringify(state)); } catch (e) {} updateCounts(); }
+
+// ---------------------------------------------------------------- rendering Markdown safely
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+if (window.marked) marked.use({ gfm: true, renderer: { html(token) { return esc(typeof token === "string" ? token : token.text); } } });
+if (window.DOMPurify) {
+  DOMPurify.addHook("afterSanitizeAttributes", node => {
+    if (node.tagName === "A") {
+      const href = node.getAttribute("href") || "";
+      if (!/^(https?:|mailto:|#|\.{0,2}\/|[^:]*$)/i.test(href)) node.removeAttribute("href");
+      node.setAttribute("target", "_blank"); node.setAttribute("rel", "noopener noreferrer");
+    }
+    if (node.tagName === "IMG" && !/^https?:/i.test(node.getAttribute("src") || "")) node.removeAttribute("src");
+    if (node.tagName === "INPUT") {
+      if (node.getAttribute("type") !== "checkbox") node.remove();
+      else node.setAttribute("disabled", "");
+    }
+  });
+}
+function markdownToHtml(raw) {
+  if (!window.marked || !window.DOMPurify) return "<pre>" + esc(raw) + "</pre>";
+  const html = marked.parse(raw + (PAGE.refs ? "\n\n" + PAGE.refs : ""));
+  return DOMPurify.sanitize(html, { FORBID_TAGS: ["style", "form", "button", "iframe", "textarea", "select"], FORBID_ATTR: ["style"] });
+}
+function decorateAlerts(root) {
+  for (const bq of root.querySelectorAll("blockquote")) {
+    const p = bq.querySelector("p");
+    const m = p && p.firstChild && p.firstChild.nodeType === 3 && p.firstChild.data.match(/^\s*\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]\s*/);
+    if (!m) continue;
+    p.firstChild.data = p.firstChild.data.slice(m[0].length);
+    const kind = m[1].toLowerCase();
+    bq.classList.add("alert"); bq.style.setProperty("--alert-color", `var(--alert-${kind})`);
+    bq.prepend(el("p", { class: "alert-title" }, m[1][0] + m[1].slice(1).toLowerCase()));
+  }
+}
+let mermaidReady = false, mermaidCount = 0;
+function mermaidInit() {
+  if (mermaidReady || !window.mermaid) return !!window.mermaid;
+  const dark = matchMedia("(prefers-color-scheme: dark)").matches;
+  mermaid.initialize({ startOnLoad: false, securityLevel: "strict", theme: dark ? "dark" : "default" });
+  return (mermaidReady = true);
+}
+async function drawMermaid(target, code) {
+  if (!mermaidInit()) {
+    target.replaceChildren(el("pre", {}, el("code", {}, code)), el("div", { class: "warn" }, "Diagram not drawn: Mermaid could not be loaded (offline?)."));
+    return;
+  }
+  try {
+    const { svg } = await mermaid.render("mmd" + (++mermaidCount), code);
+    const out = el("div", { class: "mermaid-out" }); out.innerHTML = DOMPurify.sanitize(svg, { USE_PROFILES: { svg: true, svgFilters: true } });
+    target.replaceChildren(out);
+  } catch (e) {
+    target.replaceChildren(el("pre", {}, el("code", {}, code)), el("div", { class: "warn" }, "Diagram error: " + (e.message || e)));
+  }
+}
+
+// ---------------------------------------------------------------- blocks
+const docEl = $("#doc");
+const blockEls = {};
+function contentOf(id) { return blockEls[id] && blockEls[id].querySelector(".content"); }
+
+function renderBlock(b) {
+  const wrap = blockEls[b.id];
+  const content = $(".content", wrap);
+  const edited = Object.prototype.hasOwnProperty.call(state.edits, b.id);
+  const raw = edited ? state.edits[b.id] : b.raw;
+  if (!edited && b.kind === "mermaid") {
+    content.replaceChildren(el("pre", {}, el("code", {}, b.raw)));
+    drawMermaid(content, b.raw.split("\n").slice(1, -1).join("\n"));
+  } else if (!edited && (b.kind === "frontmatter" || b.kind === "refs")) {
+    content.replaceChildren(el("pre", { class: b.kind }, el("code", {}, b.raw)));
+  } else {
+    content.innerHTML = markdownToHtml(raw);
+    decorateAlerts(content);
+  }
+  wrap.classList.toggle("has-block-ann", state.annotations.some(a => a.spans.some(s => s.block === b.id && s.start === undefined)));
+  // Badges: whole-block notes and rewrites
+  const badges = $(".badges", wrap); badges.replaceChildren();
+  for (const a of state.annotations.filter(a => a.spans.some(s => s.block === b.id && s.start === undefined))) {
+    badges.append(el("span", { class: "badge", title: a.text || "", onclick: e => showAnnotations([a.id], e.currentTarget) }, kindOf(a) + (a.text ? ": " + a.text.slice(0, 40) + (a.text.length > 40 ? "…" : "") : "")));
+  }
+  if (edited) {
+    badges.append(el("span", { class: "badge rewritten", onclick: e => toggleDiff(b, wrap) }, "✎ Rewritten · show diff"));
+    badges.append(el("span", { class: "badge", onclick: () => { delete state.edits[b.id]; save(); renderBlock(b); toast("Rewrite reverted"); } }, "Revert"));
+  }
+  badges.hidden = !badges.childElementCount;
+  if (!edited) applyMarks(b.id);
+}
+
+function buildDoc() {
+  $("#title").textContent = PAGE.title;
+  $("#path").textContent = PAGE.path;
+  if (PAGE.note) { $("#note").textContent = PAGE.note; $("#note").hidden = false; }
+  for (const b of blocks) {
+    const wrap = el("section", { class: "blk", "data-id": b.id, id: "blk-" + b.id },
+      el("div", { class: "badges" }),
+      el("div", { class: "content" }),
+      el("div", { class: "tools" },
+        el("button", { class: "tool", title: "Comment on this block", onclick: e => blockComment(b, e.currentTarget) }, "💬"),
+        el("button", { class: "tool", title: "Rewrite this block's Markdown", onclick: e => blockRewrite(b, e.currentTarget) }, "✎")));
+    blockEls[b.id] = wrap;
+    docEl.append(wrap);
+    renderBlock(b);
+  }
+  buildOutline();
+}
+
+// ---------------------------------------------------------------- text offsets and highlights
+function textNodesOf(root) {
+  const out = []; const w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+  for (let n = w.nextNode(); n; n = w.nextNode()) out.push(n);
+  return out;
+}
+function offsetIn(root, node, offset) {
+  const r = document.createRange(); r.setStart(root, 0);
+  try { r.setEnd(node, offset); } catch (e) { return 0; }
+  return r.toString().length;
+}
+function applyMarks(blockId) {
+  const root = contentOf(blockId); if (!root) return;
+  const spans = [];
+  for (const a of state.annotations) a.spans.forEach((s, i) => {
+    if (s.block === blockId && s.start !== undefined) spans.push({ a, s, last: i === a.spans.length - 1 });
+  });
+  for (const { a, s, last } of spans) {
+    let pos = 0; const parts = [];
+    for (const node of textNodesOf(root)) {
+      const len = node.data.length, from = Math.max(s.start, pos), to = Math.min(s.end, pos + len);
+      if (from < to) parts.push([node, from - pos, to - pos]);
+      pos += len;
+      if (pos >= s.end) break;
+    }
+    let lastMark = null;
+    for (const [node, from, to] of parts) {
+      let target = node;
+      if (from > 0) target = target.splitText(from);
+      if (to - from < target.data.length) target.splitText(to - from);
+      const cls = "ann t-" + a.type + (a.label ? " l-" + a.label : "");
+      const mark = el("mark", { class: cls, "data-ann": a.id });
+      target.parentNode.insertBefore(mark, target); mark.append(target);
+      lastMark = mark;
+    }
+    if (last && lastMark && a.type === "suggest") lastMark.after(el("ins", { class: "sugg", "data-ann": a.id }, a.replacement));
+  }
+}
+function rerender(blockIds) { for (const id of new Set(blockIds)) renderBlock(byId[id]); updateCounts(); }
+
+// The current selection as spans over blocks (text offsets in each block's rendered text).
+function selectionSpans() {
+  const sel = getSelection();
+  if (!sel || sel.isCollapsed || !sel.rangeCount) return null;
+  const range = sel.getRangeAt(0);
+  const quote = sel.toString().trim();
+  if (!quote) return null;
+  const spans = []; let skipped = false;
+  for (const b of blocks) {
+    const root = contentOf(b.id);
+    if (!root || !range.intersectsNode(root)) continue;
+    if (Object.prototype.hasOwnProperty.call(state.edits, b.id) || b.kind === "mermaid") { skipped = true; continue; }
+    const startIn = root.contains(range.startContainer), endIn = root.contains(range.endContainer);
+    const start = startIn ? offsetIn(root, range.startContainer, range.startOffset) : 0;
+    const end = endIn ? offsetIn(root, range.endContainer, range.endOffset) : root.textContent.length;
+    if (end > start) spans.push({ block: b.id, start, end });
+  }
+  if (!spans.length) return skipped ? { skipped } : null;
+  return { spans, quote, rect: range.getBoundingClientRect() };
+}
+
+// ---------------------------------------------------------------- annotations
+function addAnnotation(a) {
+  a.id = nextId++;
+  state.annotations.push(a); save();
+  rerender(a.spans.map(s => s.block));
+  return a;
+}
+function removeAnnotation(id) {
+  const a = state.annotations.find(x => x.id === id); if (!a) return;
+  state.annotations = state.annotations.filter(x => x.id !== id); save();
+  rerender(a.spans.map(s => s.block)); renderList();
+}
+function linesOf(a) {
+  const bs = blocks.filter(b => a.spans.some(s => s.block === b.id));
+  const from = Math.min(...bs.map(b => b.line)), to = Math.max(...bs.map(b => b.endLine));
+  return PAGE.path + ":" + from + (to > from ? "-" + to : "");
+}
+
+// ---------------------------------------------------------------- popovers
+let pop = null;
+function closePop() { if (pop) { pop.remove(); pop = null; } }
+function openPop(node, rect, opts = {}) {
+  closePop();
+  pop = node; pop.classList.add("pop"); document.body.append(pop);
+  const r = rect || { left: 100, bottom: 100, top: 100, width: 0 };
+  const w = pop.offsetWidth, h = pop.offsetHeight;
+  let left = Math.min(Math.max(8, r.left + (r.width || 0) / 2 - w / 2), innerWidth - w - 8);
+  let top = opts.above && r.top - h - 8 > 0 ? r.top - h - 8 : r.bottom + 8;
+  pop.style.left = left + scrollX + "px"; pop.style.top = top + scrollY + "px";
+  const focus = pop.querySelector("textarea, input"); if (focus) focus.focus();
+  return pop;
+}
+function noteEditor({ heading, quote, value = "", placeholder = "Comment…", code = false, onSave, rect, saveLabel = "Save" }) {
+  const ta = el("textarea", { class: code ? "code" : "", placeholder }); ta.value = value;
+  const doSave = () => { onSave(ta.value); closePop(); };
+  ta.addEventListener("keydown", e => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) { e.preventDefault(); doSave(); } if (e.key === "Escape") closePop(); });
+  return openPop(el("div", {},
+    heading ? el("h5", {}, heading) : null,
+    quote ? el("div", { class: "quote" }, quote) : null,
+    ta,
+    el("div", { class: "row" }, el("span", { class: "hint" }, "⌘↵ to save · Esc to cancel"),
+      el("button", { class: "btn small", onclick: closePop }, "Cancel"),
+      el("button", { class: "btn small primary", onclick: doSave }, saveLabel))), rect);
+}
+
+function selectionToolbar(sel) {
+  const { spans, quote, rect } = sel;
+  const make = (extra, text) => addAnnotation(Object.assign({ spans, quote, text: text || undefined }, extra));
+  const input = el("input", { placeholder: "Type a comment, ↵ to save" });
+  const done = () => { closePop(); getSelection().removeAllRanges(); };
+  input.addEventListener("keydown", e => {
+    if (e.key === "Enter" && input.value.trim()) { e.preventDefault(); make({ type: "comment" }, input.value.trim()); done(); }
+    if (e.key === "Escape") closePop();
+  });
+  const bar = el("div", { class: "toolbar" }, input,
+    el("button", { class: "tool", title: "Looks good", onclick: () => { make({ type: "label", label: "good" }); done(); } }, "👍"),
+    el("button", { class: "tool", title: "Clarify this", onclick: () => { make({ type: "label", label: "clarify" }); done(); } }, "❓"),
+    el("button", { class: "tool", title: "Mark for deletion", onclick: () => { make({ type: "delete" }); done(); } }, "🗑"),
+    el("button", { class: "tool", title: "Suggest a rewrite", onclick: () => {
+      noteEditor({ heading: "Suggest a rewrite", quote, value: quote, placeholder: "Replacement text", rect, onSave: v => { make({ type: "suggest", replacement: v }); getSelection().removeAllRanges(); } });
+    } }, "✎"));
+  openPop(bar, rect, { above: true });
+  bar.classList.add("toolbar");
+}
+
+function blockComment(b, anchor) {
+  noteEditor({ heading: "Comment on this block", quote: b.raw.slice(0, 300), rect: anchor.getBoundingClientRect(),
+    onSave: v => { if (v.trim()) addAnnotation({ type: "comment", spans: [{ block: b.id }], text: v.trim() }); } });
+}
+function blockRewrite(b, anchor) {
+  const current = Object.prototype.hasOwnProperty.call(state.edits, b.id) ? state.edits[b.id] : b.raw;
+  noteEditor({ heading: `Rewrite lines ${b.line}–${b.endLine} (Markdown)`, value: current, code: true, saveLabel: "Save rewrite",
+    rect: anchor.getBoundingClientRect(),
+    onSave: v => {
+      if (v === b.raw) delete state.edits[b.id]; else state.edits[b.id] = v;
+      save(); renderBlock(b);
+      if (state.annotations.some(a => a.spans.some(s => s.block === b.id && s.start !== undefined)))
+        toast("Text highlights on this block are hidden while it is rewritten; they still count.");
+    } });
+}
+
+function showAnnotations(ids, anchor) {
+  const items = ids.map(id => state.annotations.find(a => a.id === id)).filter(Boolean);
+  if (!items.length) return;
+  openPop(el("div", {}, items.map(a => el("div", { class: "item" },
+    el("h5", {}, kindOf(a), " ", el("span", { class: "where" }, linesOf(a))),
+    a.quote ? el("div", { class: "quote" }, a.quote) : null,
+    a.type === "suggest" ? el("div", {}, "→ ", el("ins", { class: "sugg" }, a.replacement)) : null,
+    a.text ? el("div", {}, a.text) : null,
+    el("div", { class: "row" },
+      el("button", { class: "btn small", onclick: () => editNote(a, anchor) }, a.text ? "Edit note" : "Add note"),
+      a.type === "suggest" ? el("button", { class: "btn small", onclick: () => editSuggestion(a, anchor) }, "Edit rewrite") : null,
+      el("button", { class: "btn small", onclick: () => { closePop(); removeAnnotation(a.id); } }, "Remove"))))),
+    anchor.getBoundingClientRect());
+}
+function editNote(a, anchor) {
+  noteEditor({ heading: kindOf(a), quote: a.quote, value: a.text || "", rect: anchor.getBoundingClientRect(),
+    onSave: v => { a.text = v.trim() || undefined; save(); rerender(a.spans.map(s => s.block)); renderList(); } });
+}
+function editSuggestion(a, anchor) {
+  noteEditor({ heading: "Suggested rewrite", quote: a.quote, value: a.replacement, rect: anchor.getBoundingClientRect(),
+    onSave: v => { a.replacement = v; save(); rerender(a.spans.map(s => s.block)); renderList(); } });
+}
+
+// ---------------------------------------------------------------- diff for rewritten blocks
+function lineDiff(a, b) {
+  const x = a.split("\n"), y = b.split("\n"), n = x.length, m = y.length;
+  const L = Array.from({ length: n + 1 }, () => new Array(m + 1).fill(0));
+  for (let i = n - 1; i >= 0; i--) for (let j = m - 1; j >= 0; j--) L[i][j] = x[i] === y[j] ? L[i + 1][j + 1] + 1 : Math.max(L[i + 1][j], L[i][j + 1]);
+  const out = []; let i = 0, j = 0;
+  while (i < n && j < m) {
+    if (x[i] === y[j]) { out.push([" ", x[i]]); i++; j++; }
+    else if (L[i + 1][j] >= L[i][j + 1]) out.push(["-", x[i++]]);
+    else out.push(["+", y[j++]]);
+  }
+  while (i < n) out.push(["-", x[i++]]);
+  while (j < m) out.push(["+", y[j++]]);
+  return out;
+}
+function toggleDiff(b, wrap) {
+  const existing = $(".diff", wrap);
+  if (existing) { existing.remove(); return; }
+  const d = el("div", { class: "diff" }, lineDiff(b.raw, state.edits[b.id]).map(([k, t]) =>
+    el("div", { class: k === "+" ? "add" : k === "-" ? "rem" : "" }, (k === " " ? "  " : k + " ") + t)));
+  $(".badges", wrap).after(d);
+}
+
+// ---------------------------------------------------------------- outline, list, counts
+const headings = blocks.filter(b => b.heading);
+function sectionCount(h) {
+  const i = blocks.indexOf(h); const ids = new Set();
+  for (let k = i; k < blocks.length; k++) {
+    if (k > i && blocks[k].heading && blocks[k].heading.depth <= h.heading.depth) break;
+    ids.add(blocks[k].id);
+  }
+  return state.annotations.filter(a => a.spans.some(s => ids.has(s.block))).length + Object.keys(state.edits).filter(id => ids.has(id)).length;
+}
+function buildOutline() {
+  const nav = $("#outline");
+  nav.replaceChildren(el("h4", {}, "Outline"));
+  if (!headings.length) nav.append(el("div", { class: "help-line" }, "No headings."));
+  for (const h of headings) {
+    const c = sectionCount(h);
+    nav.append(el("a", { href: "#blk-" + h.id, "data-id": h.id, style: `padding-left:${8 + (h.heading.depth - 1) * 12}px`,
+      onclick: e => { e.preventDefault(); blockEls[h.id].scrollIntoView({ behavior: "smooth", block: "start" }); } },
+      el("span", {}, h.heading.text || "(untitled)"), c ? el("span", { class: "count" }, c) : null));
+  }
+  spy();
+}
+function spy() {
+  let current = headings[0];
+  for (const h of headings) if (blockEls[h.id].getBoundingClientRect().top < 120) current = h;
+  for (const a of document.querySelectorAll(".outline a")) a.classList.toggle("active", current && a.dataset.id === current.id);
+}
+addEventListener("scroll", () => requestAnimationFrame(spy), { passive: true });
+function updateCounts() {
+  $("#ann-count").textContent = state.annotations.length + Object.keys(state.edits).length;
+  $("#overall-btn").textContent = state.overall ? "Overall comment ✓" : "Overall comment";
+  buildOutline(); if ($("#drawer").classList.contains("open")) renderList();
+}
+function renderList() {
+  const list = $("#ann-list"); list.replaceChildren();
+  const order = a => Math.min(...a.spans.map(s => blocks.indexOf(byId[s.block])));
+  const items = state.annotations.slice().sort((a, b) => order(a) - order(b) || a.id - b.id);
+  if (state.overall) list.append(el("div", { class: "ann-item" }, el("div", { class: "k" }, "Overall comment"), el("div", {}, state.overall)));
+  for (const a of items) list.append(el("div", { class: "ann-item" },
+    el("div", { class: "k" }, kindOf(a), " ", el("span", { class: "where" }, linesOf(a))),
+    a.quote ? el("div", { class: "q" }, a.quote) : null,
+    a.type === "suggest" ? el("div", {}, "→ ", el("ins", { class: "sugg" }, a.replacement)) : null,
+    a.text ? el("div", {}, a.text) : null,
+    el("div", { class: "acts" },
+      el("button", { class: "btn small", onclick: () => jumpTo(a) }, "Show"),
+      el("button", { class: "btn small", onclick: () => removeAnnotation(a.id) }, "Remove"))));
+  for (const id of Object.keys(state.edits)) {
+    const b = byId[id];
+    list.append(el("div", { class: "ann-item" }, el("div", { class: "k" }, "Rewritten block ", el("span", { class: "where" }, `${PAGE.path}:${b.line}-${b.endLine}`)),
+      el("div", { class: "acts" }, el("button", { class: "btn small", onclick: () => blockEls[id].scrollIntoView({ behavior: "smooth", block: "center" }) }, "Show"),
+        el("button", { class: "btn small", onclick: () => { delete state.edits[id]; save(); renderBlock(b); renderList(); } }, "Revert"))));
+  }
+  if (!list.childElementCount) list.append(el("p", { class: "help-line" }, "Nothing yet. Select text in the document to start."));
+}
+function jumpTo(a) {
+  const mark = document.querySelector(`mark[data-ann="${a.id}"]`);
+  const target = mark || blockEls[a.spans[0].block];
+  target.scrollIntoView({ behavior: "smooth", block: "center" });
+  if (mark) { document.querySelectorAll(`mark[data-ann="${a.id}"]`).forEach(m => { m.classList.add("flash"); setTimeout(() => m.classList.remove("flash"), 1400); }); }
+}
+function toggleDrawer(open) {
+  const d = $("#drawer"); const want = open === undefined ? !d.classList.contains("open") : open;
+  d.classList.toggle("open", want); if (want) renderList();
+}
+
+// ---------------------------------------------------------------- modals: overall, finish, keys
+function openModal(content) { $("#modal").replaceChildren(content); $("#modal-bg").classList.add("open"); const f = $("#modal textarea, #modal input:checked"); if (f) f.focus(); }
+function closeModal() { $("#modal-bg").classList.remove("open"); }
+$("#modal-bg").addEventListener("mousedown", e => { if (e.target.id === "modal-bg") closeModal(); });
+
+function overallModal() {
+  const ta = el("textarea", { placeholder: "Your overall comment on the document" }); ta.value = state.overall;
+  const doSave = () => { state.overall = ta.value.trim(); save(); closeModal(); };
+  ta.addEventListener("keydown", e => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) { e.preventDefault(); doSave(); } });
+  openModal(el("div", {}, el("h3", {}, "Overall comment"), ta,
+    el("div", { class: "row" }, el("button", { class: "btn", onclick: closeModal }, "Cancel"), el("button", { class: "btn primary", onclick: doSave }, "Save"))));
+}
+
+function payload(verdict) {
+  return {
+    verdict, overall: state.overall || undefined,
+    annotations: state.annotations.map(a => ({ type: a.type, label: a.label, spans: a.spans, quote: a.quote, text: a.text, replacement: a.replacement })),
+    edits: Object.entries(state.edits).map(([block, after]) => ({ block, after })),
+  };
+}
+function feedbackText(verdict) {
+  const V = { approve: "Approved", approve_notes: "Approved with notes", changes: "Changes requested", dismissed: "Dismissed" };
+  const out = [`# Document review: ${PAGE.path}`, "", `Verdict: ${V[verdict]}`];
+  if (state.overall) out.push("", "Overall comment:", state.overall);
+  state.annotations.forEach((a, i) => {
+    out.push("", `${i + 1}. ${kindOf(a)} at ${linesOf(a)}`);
+    if (a.quote) out.push(a.quote.split("\n").map(l => "> " + l).join("\n"));
+    if (a.type === "suggest") out.push("Replace with:", a.replacement);
+    if (a.text) out.push("Note: " + a.text);
+  });
+  for (const [id, after] of Object.entries(state.edits)) { const b = byId[id]; out.push("", `Rewrite of ${PAGE.path}:${b.line}-${b.endLine}:`, after); }
+  return out.join("\n");
+}
+
+function finishModal() {
+  const n = state.annotations.length, e = Object.keys(state.edits).length;
+  const radio = (value, title, sub) => el("label", {}, el("input", { type: "radio", name: "verdict", value, checked: state.verdict === value }),
+    el("span", {}, el("b", {}, title), el("small", {}, sub)));
+  const ta = el("textarea", { placeholder: "Overall comment (optional)" }); ta.value = state.overall;
+  const status = el("span", { class: "summary left" }, `${n} annotation${n === 1 ? "" : "s"}${e ? `, ${e} rewritten block${e === 1 ? "" : "s"}` : ""}`);
+  const send = async verdict => {
+    state.overall = ta.value.trim(); state.verdict = verdict; save();
+    status.textContent = "Sending…";
+    try {
+      const res = await fetch("/submit", { method: "POST", headers: { "Content-Type": "application/json", "X-Review-Token": PAGE.token }, body: JSON.stringify(payload(verdict)) });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(body.error || res.statusText);
+      try { localStorage.removeItem(STORE); } catch (e) {}
+      document.body.replaceChildren(el("div", { class: "done-screen" }, el("h2", {}, "Sent to Claude"),
+        el("p", {}, "Your review of ", el("code", {}, PAGE.path), " is on its way. You can close this tab.")));
+    } catch (err) {
+      status.textContent = "";
+      openModal(el("div", {}, el("h3", {}, "Could not send"),
+        el("p", { class: "summary" }, "The review session is no longer listening (" + err.message + "). Copy your feedback and paste it into Claude instead."),
+        el("pre", { class: "copy" }, feedbackText(verdict)),
+        el("div", { class: "row" }, el("button", { class: "btn", onclick: closeModal }, "Close"),
+          el("button", { class: "btn primary", onclick: () => navigator.clipboard.writeText(feedbackText(verdict)).then(() => toast("Copied")) }, "Copy feedback"))));
+    }
+  };
+  const chosen = () => (document.querySelector('input[name="verdict"]:checked') || {}).value || "approve";
+  ta.addEventListener("keydown", ev => { if (ev.key === "Enter" && (ev.metaKey || ev.ctrlKey)) { ev.preventDefault(); send(chosen()); } });
+  openModal(el("div", {}, el("h3", {}, "Finish review"),
+    el("div", { class: "verdicts" },
+      radio("approve", "Approve", "The document is ready as it is."),
+      radio("approve_notes", "Approve with notes", "Ready once the annotations are applied."),
+      radio("changes", "Request changes", "Not ready; the annotations say what must change.")),
+    ta,
+    el("div", { class: "row" }, status,
+      el("button", { class: "btn", title: "Close the review without a verdict", onclick: () => send("dismissed") }, "Dismiss"),
+      el("button", { class: "btn", onclick: () => navigator.clipboard.writeText(feedbackText(chosen())).then(() => toast("Copied")) }, "Copy feedback"),
+      el("button", { class: "btn primary", onclick: () => send(chosen()) }, "Send to Claude"))));
+}
+function keysModal() {
+  const rows = [["J / K", "Next / previous section"], ["A", "Annotations list"], ["O", "Overall comment"], ["⌘↵", "Save the open note, or finish the review"], ["Esc", "Close"], ["?", "This list"]];
+  openModal(el("div", {}, el("h3", {}, "Keys"), el("table", { class: "keys" }, rows.map(([k, d]) => el("tr", {}, el("td", {}, el("kbd", {}, k)), el("td", {}, d)))),
+    el("div", { class: "row" }, el("button", { class: "btn", onclick: closeModal }, "Close"))));
+}
+function toast(msg) { const t = $("#toast"); t.textContent = msg; t.style.display = "block"; clearTimeout(toast.t); toast.t = setTimeout(() => (t.style.display = "none"), 2200); }
+
+// ---------------------------------------------------------------- events
+$("#overall-btn").onclick = overallModal;
+$("#list-btn").onclick = () => toggleDrawer();
+$("#drawer-close").onclick = () => toggleDrawer(false);
+$("#finish-btn").onclick = finishModal;
+
+document.addEventListener("mouseup", e => {
+  if (pop && pop.contains(e.target)) return;
+  if (e.target.closest(".tools, .badges, .top, .drawer, .modal-bg")) return;
+  setTimeout(() => {
+    const sel = selectionSpans();
+    if (sel && sel.skipped) { toast("Rewritten blocks and diagrams take whole-block comments only (💬)."); return; }
+    if (sel) selectionToolbar(sel);
+  }, 0);
+});
+document.addEventListener("mousedown", e => { if (pop && !pop.contains(e.target)) closePop(); });
+docEl.addEventListener("click", e => {
+  const mark = e.target.closest("mark.ann, ins.sugg");
+  if (!mark || !getSelection().isCollapsed) return;
+  const ids = []; for (let n = mark; n && n !== docEl; n = n.parentElement) if (n.dataset && n.dataset.ann) ids.push(+n.dataset.ann);
+  showAnnotations([...new Set(ids)], mark);
+});
+document.addEventListener("keydown", e => {
+  const typing = e.target.closest("input, textarea");
+  if (e.key === "Escape") { closePop(); closeModal(); toggleDrawer(false); return; }
+  if (typing) return;
+  if ((e.metaKey || e.ctrlKey) && e.key === "Enter") { e.preventDefault(); finishModal(); return; }
+  if (e.metaKey || e.ctrlKey || e.altKey || $("#modal-bg").classList.contains("open")) return;
+  const k = e.key.toLowerCase();
+  if (k === "j" || k === "k") {
+    const tops = headings.map(h => [h, blockEls[h.id].getBoundingClientRect().top]);
+    const target = k === "j" ? tops.find(([, t]) => t > 90) : tops.filter(([, t]) => t < 70).pop();
+    if (target) blockEls[target[0].id].scrollIntoView({ behavior: "smooth", block: "start" });
+  } else if (k === "a") toggleDrawer();
+  else if (k === "o") overallModal();
+  else if (e.key === "?") keysModal();
+});
+
+// Tell the reviewer when the command that serves this page has stopped.
+async function checkLive() {
+  try { const r = await fetch("/status", { cache: "no-store" }); const s = await r.json(); $("#ended").style.display = s.live ? "none" : "block"; }
+  catch (e) { $("#ended").style.display = "block"; }
+}
+setInterval(checkLive, 15000);
+
+buildDoc();
+updateCounts();
+</script>
+</body>
+</html>

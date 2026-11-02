@@ -1,0 +1,79 @@
+#!/usr/bin/env python3
+"""monet-notebook: this session's notebook of hard-won learnings.
+
+Open learnings are restored into context after every compaction. Durable ones
+are distilled into project files (/monet:learnings distill) and retired.
+"""
+import argparse
+import json
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "lib"))
+import notebook  # noqa: E402
+
+
+def main(argv=None):
+    parser = argparse.ArgumentParser(
+        prog="monet-notebook", description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+    )
+    parser.add_argument("--session", help="session id (default: $MONET_SESSION_ID)")
+    sub = parser.add_subparsers(dest="command", required=True)
+
+    add = sub.add_parser("add", help="record one learning")
+    add.add_argument("content", help="the learning, written to stand alone after compaction")
+    add.add_argument("--supersedes", nargs="+", default=[], metavar="ID", help="learnings this one replaces")
+
+    retire = sub.add_parser("retire", help="retire learnings that were distilled or no longer hold")
+    retire.add_argument("ids", nargs="+", metavar="ID")
+    retire.add_argument("--reason", help="where it went, or why it no longer holds")
+
+    lst = sub.add_parser("list", help="show open learnings")
+    lst.add_argument("--all", action="store_true", help="include retired learnings")
+    lst.add_argument("--json", action="store_true")
+
+    show = sub.add_parser("show", help="show one learning with its history")
+    show.add_argument("id")
+
+    sub.add_parser("distill-prompt", help="print the distillation instruction with every open learning")
+    sub.add_parser("path", help="print this session's notebook file")
+
+    args = parser.parse_args(argv)
+    try:
+        sid = notebook.session_id(args.session)
+        if args.command == "add":
+            lid = notebook.add_learning(sid, args.content, args.supersedes)
+            print(f"Recorded [{lid}]")
+        elif args.command == "retire":
+            notebook.retire_learnings(sid, args.ids, args.reason)
+            print(f"Retired {', '.join(args.ids)}")
+        elif args.command == "list":
+            open_, everything = notebook.fold(notebook.read_events(sid))
+            items = list(everything.values()) if args.all else open_
+            if args.json:
+                print(json.dumps(items, indent=2, ensure_ascii=False))
+            elif not items:
+                print("No open learnings." if not args.all else "The notebook is empty.")
+            else:
+                for l in items:
+                    mark = "" if l["open"] else " (retired)"
+                    print(f"{notebook.learning_line(l)}{mark}")
+        elif args.command == "show":
+            _, everything = notebook.fold(notebook.read_events(sid))
+            l = everything.get(args.id)
+            if not l:
+                raise notebook.NotebookError(f"No learning with id {args.id} in this session")
+            print(json.dumps(l, indent=2, ensure_ascii=False))
+        elif args.command == "distill-prompt":
+            learnings = notebook.open_learnings(sid)
+            print(notebook.distill_prompt(learnings) if learnings else "No open learnings to distill.")
+        elif args.command == "path":
+            print(notebook.notebook_path(sid))
+        return 0
+    except notebook.NotebookError as error:
+        print(f"monet-notebook: {error}", file=sys.stderr)
+        return 1
+
+
+if __name__ == "__main__":
+    sys.exit(main())

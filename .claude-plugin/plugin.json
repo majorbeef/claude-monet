@@ -1,0 +1,31 @@
+{
+  "name": "monet",
+  "displayName": "Monet",
+  "version": "0.1.0",
+  "description": "Engineering and team-decision skills, 18 role subagents, a session notebook that survives compaction, a .ledger task workbench, and a browser review page for Markdown documents.",
+  "author": {
+    "name": "crweidert"
+  },
+  "license": "MIT",
+  "keywords": [
+    "skills",
+    "subagents",
+    "ledger",
+    "learnings"
+  ],
+  "userConfig": {
+    "generated_guard": {
+      "type": "boolean",
+      "title": "Block whole reads of large generated files",
+      "description": "Stop Claude from reading whole lockfiles, dependency and build folders, minified bundles, and snapshots over 20 KB. It is told to search or read a slice instead.",
+      "default": true
+    },
+    "reflect_every_tokens": {
+      "type": "number",
+      "title": "Tokens between learning reflections",
+      "description": "After this many new tokens, Claude is asked once to record what it learned in the session notebook. 0 (the default) turns it off; 500000 is a reasonable value.",
+      "default": 0,
+      "min": 0
+    }
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "name": "claude-monet",
+  "description": "Skills, role subagents, session notebook, ledger, and document review for Claude Code",
+  "owner": {
+    "name": "crweidert"
+  },
+  "plugins": [
+    {
+      "name": "monet",
+      "source": "./",
+      "description": "Skills, role subagents, session notebook, ledger, and document review"
+    }
+  ]
+}
