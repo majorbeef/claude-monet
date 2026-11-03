@@ -266,16 +266,42 @@ def _quote_md(text):
     return "\n".join("> " + l if l else ">" for l in text.split("\n"))
 
 
+def asks_question(text):
+    """True when the text contains a question: a `?` that ends a sentence."""
+    return bool(text) and re.search(r"\?(\s|$)", text) is not None
+
+
+def is_question(annotation):
+    """A ❓ label, or a note that asks something. The reviewer wants an answer, not an edit."""
+    if annotation["type"] == "label":
+        return annotation.get("label") == "clarify"
+    return annotation["type"] == "comment" and asks_question(annotation.get("text"))
+
+
+QUESTIONS_FIRST = (
+    "Answer each question in the conversation, then stop and wait for the reviewer's reply. "
+    "Don't pick an answer yourself and don't edit the parts a question covers until they've replied. "
+    "You may apply the changes that no question touches now."
+)
+
+
 def format_result(result, page):
     out = [f"# Document review: {page['path']}", "", f"Verdict: {VERDICTS[result['verdict']]}"]
     if result.get("overall"):
         out += ["", "Overall comment:", result["overall"]]
-    if result["annotations"]:
-        out += ["", f"## Annotations ({len(result['annotations'])})"]
-        for i, a in enumerate(result["annotations"], 1):
+    # Questions go first, numbered on from 1; changes and notes continue the numbering.
+    questions = [a for a in result["annotations"] if is_question(a)]
+    others = [a for a in result["annotations"] if not is_question(a)]
+    number = 0
+    for title, group in (("Questions", questions), ("Changes and notes", others)):
+        if not group:
+            continue
+        out += ["", f"## {title} ({len(group)})"]
+        for a in group:
+            number += 1
             kind = LABELS[a["label"]] if a["type"] == "label" else TYPE_TEXT[a["type"]]
             whole = all("start" not in s for s in a["spans"])
-            out += ["", f"{i}. {kind}{' (whole block)' if whole else ''} at {anchor(page, a['spans'], a.get('quote'))}"]
+            out += ["", f"{number}. {kind}{' (whole block)' if whole else ''} at {anchor(page, a['spans'], a.get('quote'))}"]
             if a.get("quote"):
                 out.append(_quote_md(a["quote"]))
             if a["type"] == "suggest":
@@ -292,6 +318,8 @@ def format_result(result, page):
     if not result["annotations"] and not result["edits"] and not result.get("overall"):
         out += ["", "No annotations."]
     out += ["", "The file was not changed. Apply the feedback yourself; an approval covers only what the reviewer saw."]
+    if questions or asks_question(result.get("overall")):
+        out += ["", f"The reviewer asked questions. {QUESTIONS_FIRST}"]
     return "\n".join(out)
 
 # ---------------------------------------------------------------------------
