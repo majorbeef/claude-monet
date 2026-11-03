@@ -252,7 +252,9 @@ async function drawMermaid(target, code) {
   }
   try {
     const { svg } = await mermaid.render("mmd" + (++mermaidCount), code);
-    const out = el("div", { class: "mermaid-out" }); out.innerHTML = DOMPurify.sanitize(svg, { USE_PROFILES: { svg: true, svgFilters: true } });
+    // Flowchart, class and state labels are HTML inside <foreignObject>; allow it or the labels vanish.
+    const out = el("div", { class: "mermaid-out" });
+    out.innerHTML = DOMPurify.sanitize(svg, { USE_PROFILES: { svg: true, svgFilters: true, html: true }, ADD_TAGS: ["foreignObject"] });
     target.replaceChildren(out);
   } catch (e) {
     target.replaceChildren(el("pre", {}, el("code", {}, code)), el("div", { class: "warn" }, "Diagram error: " + (e.message || e)));
