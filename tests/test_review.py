@@ -119,12 +119,36 @@ class ResultTest(unittest.TestCase):
         self.assertEqual(result["overall"], "Mostly good.")
         text = review.format_result(result, self.page).replace(self.page["path"], "spec.md")
         self.assertIn("Verdict: Approved with notes", text)
-        self.assertIn("1. Comment at spec.md:7\n> They expire after 30 days\nNote: Why 30?", text)
-        self.assertIn("2. Suggested rewrite at spec.md:6", text)
+        self.assertIn("## Questions (1)\n\n1. Comment at spec.md:7\n> They expire after 30 days\nNote: Why 30?", text)
+        self.assertIn("## Changes and notes (3)\n\n2. Suggested rewrite at spec.md:6", text)
+        self.assertIn("The reviewer asked questions.", text)
         self.assertIn("Replace with:\n```\nLogins\n```", text)
         self.assertIn("3. Looks good (whole block) at spec.md:15-19", text)
         self.assertIn("4. Delete at spec.md:6-13", text)
         self.assertIn("### spec.md:4\nBefore:\n````markdown\n# Session storage\n````\nAfter:\n````markdown\n# Login storage", text)
+
+    def test_questions_come_first(self):
+        def fmt(body):
+            return review.format_result(review.parse_result(body, self.page), self.page).replace(self.page["path"], "spec.md")
+
+        text = fmt({"verdict": "changes", "annotations": [
+            {"type": "comment", "spans": [{"block": "b3"}], "text": "Use 60 days."},
+            {"type": "label", "label": "clarify", "spans": [{"block": "b5"}]},
+            {"type": "comment", "spans": [{"block": "b4"}], "text": "Is this per user? Or global"},
+        ]})
+        self.assertIn("## Questions (2)\n\n1. Clarify this (whole block)", text)
+        self.assertIn("\n2. Comment (whole block) at spec.md:", text)
+        self.assertIn("## Changes and notes (1)\n\n3. Comment (whole block) at spec.md:6-7\nNote: Use 60 days.", text)
+        self.assertIn("wait for the reviewer's reply", text)
+
+        # Only statements: no questions section, no questions note. A "?" inside a word doesn't count.
+        text = fmt({"verdict": "changes", "annotations": [
+            {"type": "comment", "spans": [{"block": "b3"}], "text": "See /search?q=x for the format."}]})
+        self.assertNotIn("## Questions", text)
+        self.assertNotIn("asked questions", text)
+
+        # A question in the overall comment also holds edits back.
+        self.assertIn("asked questions", fmt({"verdict": "changes", "overall": "Why not Redis?"}))
 
     def test_rejects_malformed(self):
         bad = [
