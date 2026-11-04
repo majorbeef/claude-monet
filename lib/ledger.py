@@ -28,11 +28,11 @@ class LedgerError(Exception):
     pass
 
 
-LEDGER_CONTRACT = """The ledger is this project's task workbench. `.ledger/` holds one directory per undertaking, `.ledger/INDEX.md` lists live tasks, and closed tasks move to `.ledger/history/`. The repository owner decides whether it is committed or shared.
+LEDGER_CONTRACT = """The ledger is this project's task workbench. `.ledger/` holds one directory per undertaking, `.ledger/INDEX.md` lists live tasks, and closed tasks move to `.ledger/history/`. The ledger is local working state and is never committed: `.ledger/.gitignore` keeps the whole folder out of git. Don't stage or commit its files, and don't add it to the project's `.gitignore`.
 
 Use a task when work needs to be written down, resumed, handed off, or understood later; small, coherent work needs none. Before you add a task, check the index for one that already owns the work. Create one with `monet-ledger add --title "..." --description "..."`.
 
-A task's `task.md` holds its intent, status, current state, and outcome. Keep the status current with `monet-ledger status <task> <status>`: `planning` until intent, approach, and acceptance criteria are settled, then `ready`, then `in-progress` once implementation starts; `done` and `cancelled` archive it (only after edits to the bundle are committed). Add other files only when they serve the work; the workflow that creates a file owns its format. Keep `retrospective.md` to what mattered and the lessons worth retrieving later.
+A task's `task.md` holds its intent, status, current state, and outcome. Keep the status current with `monet-ledger status <task> <status>`: `planning` until intent, approach, and acceptance criteria are settled, then `ready`, then `in-progress` once implementation starts; `done` and `cancelled` archive it. Add other files only when they serve the work; the workflow that creates a file owns its format. Keep `retrospective.md` to what mattered and the lessons worth retrieving later.
 
 Repository documentation and tests stay authoritative for product behavior; the ledger holds task-specific context."""
 
@@ -225,6 +225,13 @@ def find_root(start):
     return start
 
 
+def keep_out_of_git(ledger):
+    """The ledger is never committed: a `*` .gitignore inside it hides the whole folder from git."""
+    ignore = ledger / ".gitignore"
+    if not ignore.exists():
+        ignore.write_text("# monet ledger: local working state, never committed.\n*\n")
+
+
 def add_task(root, title, description, slug=None, now=None):
     root = Path(root).resolve()
     title = _one_line(title, "title", 160)
@@ -235,6 +242,7 @@ def add_task(root, title, description, slug=None, now=None):
     ledger = root / ".ledger"
     _check_dir(ledger, ".ledger")
     ledger.mkdir(exist_ok=True)
+    keep_out_of_git(ledger)
     bundle = ledger / task_id
     task_path = f".ledger/{task_id}/task.md"
     with ledger_lock(root):
@@ -261,6 +269,8 @@ def set_status(root, task, status):
     task_id = parse_task_id(task)
     if status not in STATUSES:
         raise LedgerError(f"status must be one of {', '.join(STATUSES)}")
+    if (root / ".ledger").is_dir():
+        keep_out_of_git(root / ".ledger")  # covers ledgers made before this rule
     with ledger_lock(root):
         if status in LIVE_STATUSES:
             return _update_live(root, task_id, status)
