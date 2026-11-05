@@ -22,18 +22,4 @@ One document, one judgment: sign-off means the document is complete enough to si
 
 ## Open the review page
 
-`monet-review` (on the Bash tool's PATH while this plugin is enabled) serves the Markdown file as a rendered page on `127.0.0.1` and waits until the operator presses **Send to Claude**. On the page they select text to comment, mark 👍 looks good or ❓ clarify, mark for deletion, or suggest a rewrite; comment on or rewrite whole blocks; add an overall comment; and choose a verdict: approve, approve with notes, request changes, or dismiss.
-
-1. Start it **in the background** (Bash with `run_in_background: true`), because it runs until the operator finishes:
-
-   ```bash
-   monet-review path/to/spec.md --note "One sentence: what you need from the reviewer"
-   ```
-
-   It opens the browser and prints the page's address on its first line. Tell the operator in one or two sentences what the document is and what you need, and give the address in case the browser did not open. Then stop and wait; do not continue work that depends on the verdict.
-2. When the command exits, read its output. It holds the verdict, the overall comment, then **Questions** (❓ marks and comments that ask something) and **Changes and notes**, each with its kind, `path:line` anchor, and quoted text (with the replacement for a suggested rewrite), and each rewritten block before and after.
-3. **Answer questions before editing.** A question asks for your answer, not for an edit, and the operator may disagree with your answer. For each question, and any question in the overall comment, answer in the conversation: what the passage means or why it says what it does, and, when there's a choice, the options with your recommendation. Then stop and wait for the operator's reply. Don't decide on their behalf, and don't change the parts a question covers until they've answered.
-4. Apply the changes yourself; the file was not changed. Treat a suggested rewrite or rewritten block as the operator's intended wording. Changes that no open question touches can go in while you wait on the answers. Once the questions are settled, apply what was agreed. Report what you changed, and what you left and why. An approval covers only what the operator saw.
-5. If the answers changed the document in ways the operator hasn't seen, offer another review round.
-
-Exit code 2 means `--timeout` passed before the operator finished. If the page says the session ended, the operator can copy their feedback from the Finish dialog and paste it into the conversation.
+Open the document on the review page and act on the feedback as [the `review` skill](../../review/SKILL.md) describes, from **Open the review page** on. The operator is the reviewer.

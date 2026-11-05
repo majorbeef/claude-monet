@@ -10,7 +10,7 @@ import urllib.error
 import urllib.request
 from pathlib import Path
 
-from helpers import ROOT
+from helpers import TempDirTest, ROOT
 
 import review
 
@@ -217,3 +217,21 @@ class ServerTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class ScratchTest(TempDirTest):
+    def test_scratch_reviews_stay_out_of_git(self):
+        import subprocess
+        subprocess.run(["git", "init", "-q", str(self.dir)], check=True)
+        doc = self.dir / ".monet/reviews/2026-01-01-plan.md"
+        doc.parent.mkdir(parents=True)
+        doc.write_text("# Plan\n")
+        review.keep_scratch_out_of_git(doc)
+        status = subprocess.run(["git", "status", "--porcelain", "--untracked-files=all"], cwd=self.dir,
+                                capture_output=True, text=True, check=True).stdout
+        self.assertEqual(status, "")
+        other = self.dir / "docs/spec.md"
+        other.parent.mkdir()
+        other.write_text("# Spec\n")
+        review.keep_scratch_out_of_git(other)
+        self.assertFalse((self.dir / "docs/.gitignore").exists())

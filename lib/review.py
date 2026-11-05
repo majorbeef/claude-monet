@@ -285,6 +285,17 @@ QUESTIONS_FIRST = (
 )
 
 
+def keep_scratch_out_of_git(path):
+    """Documents written for review go in .monet/reviews/; a `*` .gitignore keeps .monet/ out of git."""
+    parts = Path(path).resolve().parts
+    if ".monet" not in parts:
+        return
+    root = Path(*parts[: parts.index(".monet") + 1])
+    ignore = root / ".gitignore"
+    if not ignore.exists():
+        ignore.write_text("# monet scratch files: never committed.\n*\n")
+
+
 def format_result(result, page):
     out = [f"# Document review: {page['path']}", "", f"Verdict: {VERDICTS[result['verdict']]}"]
     if result.get("overall"):

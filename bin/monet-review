@@ -35,6 +35,7 @@ def main(argv=None):
     except (OSError, UnicodeDecodeError) as error:
         print(f"monet-review: cannot read {args.path}: {error}", file=sys.stderr)
         return 1
+    review.keep_scratch_out_of_git(args.path)
     server = review.ReviewServer(page)
     print(f"Review page for {page['path']}: {server.url}", flush=True)
     print("Waiting for the reviewer to press Finish...", flush=True)

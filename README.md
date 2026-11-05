@@ -20,7 +20,7 @@ Requirements: `python3` (3.9+, standard library only) and `git`.
 | Kind | Skills |
 | --- | --- |
 | Idea to delivery | `interrogate`, `domain-modeling`, `codebase-design`, `to-spec`, `to-tickets`, `implement`, `tdd`, `prototype` |
-| Engineering | `code-review`, `diagnosing-bugs`, `research`, `resolving-merge-conflicts`, `improve-codebase-architecture`, `sign-off` |
+| Engineering | `code-review`, `diagnosing-bugs`, `research`, `resolving-merge-conflicts`, `improve-codebase-architecture`, `sign-off`, `review` |
 | Team decisions | `decision-review`, `pre-mortem`, `retrospective` |
 | Notebook and tasks | `learnings` (`record`, `distill`, `promote`), `ledger` (`list`, `add`, `resume`, `close`) |
 
@@ -70,7 +70,7 @@ monet-ledger list
 
 `monet-review <file.md>` opens a Markdown document as a review page in your browser. You select text to comment, mark it 👍 or ❓, mark it for deletion, or suggest a rewrite. You can also comment on or rewrite whole blocks, add an overall comment, and pick a verdict. When you press **Send to Claude**, Claude gets every annotation with its `path:line` and the quoted text. The file itself is never changed; Claude applies the feedback.
 
-Claude uses it through the `sign-off` skill for document sign-offs. You can also ask for it directly: "let me review docs/spec.md". The page is served only on `127.0.0.1` behind a one-time token. It renders Markdown with bundled copies of marked and DOMPurify, and raw HTML in the document is shown as text. Mermaid diagrams load Mermaid from jsDelivr, but only when the document has one.
+Claude uses it through the `sign-off` skill for document sign-offs. When Claude doesn't offer it, run `/monet:review` yourself: `/monet:review docs/spec.md` reviews that file. With no file, Claude writes a document from the session so far (the plan, proposal, or decision under discussion) to `.monet/reviews/` (kept out of git) and opens that. Any other text says what to focus on: `/monet:review the rollout plan`. The page is served only on `127.0.0.1` behind a one-time token. It renders Markdown with bundled copies of marked and DOMPurify, and raw HTML in the document is shown as text. Mermaid diagrams load Mermaid from jsDelivr, but only when the document has one.
 
 ## Keeping token use down
 
