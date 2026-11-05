@@ -22,9 +22,9 @@ Requirements: `python3` (3.9+, standard library only) and `git`.
 | Idea to delivery | `interrogate`, `domain-modeling`, `codebase-design`, `to-spec`, `to-tickets`, `implement`, `tdd`, `prototype` |
 | Engineering | `code-review`, `diagnosing-bugs`, `research`, `resolving-merge-conflicts`, `improve-codebase-architecture`, `sign-off` |
 | Team decisions | `decision-review`, `pre-mortem`, `retrospective` |
-| Notebook | `learnings` (`record`, `distill`, `promote`) |
+| Notebook and tasks | `learnings` (`record`, `distill`, `promote`), `ledger` (`list`, `add`, `resume`, `close`) |
 
-Skills that start several subagents, or that start a multi-step workflow, run only when you type them: `code-review`, the team-decision skills, `interrogate`, `to-spec`, `to-tickets`, `implement`, `improve-codebase-architecture`, and `learnings`. Claude picks the rest (`tdd`, `diagnosing-bugs`, `research`, `domain-modeling`, `codebase-design`, `prototype`, `resolving-merge-conflicts`, `sign-off`) on its own when they fit.
+Skills that start several subagents, or that start a multi-step workflow, run only when you type them: `code-review`, the team-decision skills, `interrogate`, `to-spec`, `to-tickets`, `implement`, `improve-codebase-architecture`, `learnings`, and `ledger`. Claude picks the rest (`tdd`, `diagnosing-bugs`, `research`, `domain-modeling`, `codebase-design`, `prototype`, `resolving-merge-conflicts`, `sign-off`) on its own when they fit.
 
 Boards start small: one reviewer plus a `scientific-skeptic`, growing only when the risk calls for it or you ask. The session running a multi-agent skill chairs it, and the participants are role subagents: independent first positions run in parallel, and the chair relays positions between them when they must answer each other. The conventions live in [`skills/shared/processes.md`](skills/shared/processes.md).
 
@@ -45,7 +45,18 @@ Notebooks are stored per session in `~/.claude/monet/notebooks/`.
 
 ### Ledger
 
-`.ledger/` is a folder of task bundles: `task.md` and `retrospective.md`, plus the spec, tickets, and evidence that `to-spec` and `to-tickets` add.
+`.ledger/` is a folder of task bundles: `task.md` and `retrospective.md`, plus the spec, tickets, and evidence that `to-spec` and `to-tickets` add. It's local working state and never committed: `monet-ledger` writes `.ledger/.gitignore` so git ignores the whole folder.
+
+Claude doesn't start a ledger on its own. Use `/monet:ledger`:
+
+```
+/monet:ledger                                  # list live tasks and suggest next steps
+/monet:ledger add rate-limit the export API    # start a task (and the ledger, the first time)
+/monet:ledger resume export                    # pick a task up by id or title words
+/monet:ledger close export                     # fill in outcome and retrospective, then archive
+```
+
+Claude runs `monet-ledger` underneath; you can too:
 
 ```
 monet-ledger add --title "Rate-limit the export API" --description "Token bucket per tenant"

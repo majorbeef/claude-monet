@@ -31,6 +31,18 @@ class LedgerTest(TempDirTest):
         with self.assertRaises(ledger.LedgerError):
             ledger.set_status(self.dir, t["taskId"], "ready")
 
+    def test_never_committed(self):
+        import subprocess
+        subprocess.run(["git", "init", "-q", str(self.dir)], check=True)
+        t = ledger.add_task(self.dir, "Local only", "Stays out of git")
+        status = subprocess.run(["git", "status", "--porcelain", "--untracked-files=all"], cwd=self.dir,
+                                capture_output=True, text=True, check=True).stdout
+        self.assertEqual(status, "")
+        # A ledger made before the rule gets its .gitignore on the next status change.
+        (self.dir / ".ledger/.gitignore").unlink()
+        ledger.set_status(self.dir, t["taskId"], "ready")
+        self.assertTrue((self.dir / ".ledger/.gitignore").exists())
+
     def test_validation(self):
         with self.assertRaises(ledger.LedgerError):
             ledger.add_task(self.dir, "", "x")
